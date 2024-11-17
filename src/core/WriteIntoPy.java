@@ -13,12 +13,23 @@ import java.util.Map;
 
 public class WriteIntoPy {
 
-	public static void writeInto(String champion, int SkinNumber, double scale, String rootPath) {
+	private static final String LIGHT = "light";
+	private static final String FIRE = "fire";
+	private static final String WATER = "water";
+	private static final String AIR = "air";
+	private static final String ICE = "ice";
+	private static final String DARK = "dark";
+	private static final String MAGMA = "magma";
+	private static final String NATURE = "nature";
+	private static final String MYSTIC = "mystic";
+	private static final String STORM = "storm";
+
+	public static void writeInto(String champion, int skinNumber, double scale, String rootPath) {
 		File file = new File(
-				rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + SkinNumber + ".py");
+				rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-			Gui.updateLog("Writing into " + champion + " " + SkinNumber + " with size " + scale);
-			List<String> list = new ArrayList<String>();
+			Gui.updateLog("Writing into " + champion + " " + skinNumber + " with size " + scale);
+			List<String> list = new ArrayList<>();
 			String b;
 			while ((b = in.readLine()) != null) {
 				list.add(b);
@@ -37,12 +48,12 @@ public class WriteIntoPy {
 				}
 				list.add(b);
 			}
-			Gui.updateLog(champion + " " + SkinNumber + " overwritten");
+			Gui.updateLog(champion + " " + skinNumber + " overwritten");
 
 			String outputString = String.join("\n", list);
-			Writer w = new BufferedWriter(new FileWriter(file));
-			w.write(outputString);
-			w.close();
+			try (Writer w = new BufferedWriter(new FileWriter(file))) {
+				w.write(outputString);
+			}
 		} catch (Exception e) {
 			Gui.updateLog(e.getLocalizedMessage());
 		}
@@ -64,35 +75,35 @@ public class WriteIntoPy {
 				}
 				// check if elements arent in map
 				// add them with default size
-				if (!map.containsKey("light")) {
-					map.put("light", defaultsize);
+				if (!map.containsKey(LIGHT)) {
+					map.put(LIGHT, defaultsize);
 				}
-				if (!map.containsKey("fire")) {
-					map.put("fire", defaultsize);
+				if (!map.containsKey(FIRE)) {
+					map.put(FIRE, defaultsize);
 				}
-				if (!map.containsKey("water")) {
-					map.put("water", defaultsize);
+				if (!map.containsKey(WATER)) {
+					map.put(WATER, defaultsize);
 				}
-				if (!map.containsKey("air")) {
-					map.put("air", defaultsize);
+				if (!map.containsKey(AIR)) {
+					map.put(AIR, defaultsize);
 				}
-				if (!map.containsKey("ice")) {
-					map.put("ice", defaultsize);
+				if (!map.containsKey(ICE)) {
+					map.put(ICE, defaultsize);
 				}
-				if (!map.containsKey("dark")) {
-					map.put("dark", defaultsize);
+				if (!map.containsKey(DARK)) {
+					map.put(DARK, defaultsize);
 				}
-				if (!map.containsKey("magma")) {
-					map.put("magma", defaultsize);
+				if (!map.containsKey(MAGMA)) {
+					map.put(MAGMA, defaultsize);
 				}
-				if (!map.containsKey("nature")) {
-					map.put("nature", defaultsize);
+				if (!map.containsKey(NATURE)) {
+					map.put(NATURE, defaultsize);
 				}
-				if (!map.containsKey("mystic")) {
-					map.put("mystic", defaultsize);
+				if (!map.containsKey(MYSTIC)) {
+					map.put(MYSTIC, defaultsize);
 				}
-				if (!map.containsKey("storm")) {
-					map.put("storm", defaultsize);
+				if (!map.containsKey(STORM)) {
+					map.put(STORM, defaultsize);
 				}
 			} catch (Exception e) {
 				System.out.println(e);
@@ -100,37 +111,37 @@ public class WriteIntoPy {
 			}
 		} else {
 			Gui.updateLog("No size options for Lux legendary found, setting to default(5)");
-			map.put("light", 5.);
-			map.put("fire", 5.);
-			map.put("air", 5.);
-			map.put("ice", 5.);
-			map.put("water", 5.);
-			map.put("dark", 5.);
-			map.put("magma", 5.);
-			map.put("nature", 5.);
-			map.put("mystic", 5.);
-			map.put("storm", 5.);
+			map.put(LIGHT, 5.);
+			map.put(FIRE, 5.);
+			map.put(WATER, 5.);
+			map.put(AIR, 5.);
+			map.put(ICE, 5.);
+			map.put(DARK, 5.);
+			map.put(MAGMA, 5.);
+			map.put(NATURE, 5.);
+			map.put(MYSTIC, 5.);
+			map.put(STORM, 5.);
 		}
 		writeLux(rootPath, map);
 	}
 
 	private static void writeLux(String rootPath, Map<String, Double> map) {
 		List<String> order = new ArrayList<>();
-		order.add("light");
-		order.add("magma");
-		order.add("light");
-		order.add("dark");
-		order.add("nature");
-		order.add("fire");
-		order.add("mystic");
-		order.add("storm");
-		order.add("water");
-		order.add("ice");
-		order.add("air");
+		order.add(LIGHT);
+		order.add(MAGMA);
+		order.add(LIGHT);
+		order.add(DARK);
+		order.add(NATURE);
+		order.add(FIRE);
+		order.add(MYSTIC);
+		order.add(STORM);
+		order.add(WATER);
+		order.add(ICE);
+		order.add(AIR);
 
 		File file = new File(rootPath + "\\0WADS\\data\\characters\\lux\\skins\\skin7.py");
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-			List<String> list = new ArrayList<String>();
+			List<String> list = new ArrayList<>();
 			String b;
 			for (int i = 0; i < 11; i++) {
 				Gui.updateLog("Writing into Lux " + order.get(i) + " with size " + map.get(order.get(i)));
@@ -156,13 +167,15 @@ public class WriteIntoPy {
 				list.add(b);
 			}
 			String a = String.join("\n", list);
-			Writer w = new BufferedWriter(new FileWriter(file));
-			w.write(a);
-			w.close();
+			try (Writer w = new BufferedWriter(new FileWriter(file))) {
+				w.write(a);
+			}
 		} catch (Exception e) {
 			System.out.println(e);
 			Gui.updateLog(e.getLocalizedMessage());
 		}
 	}
-	// light, magme, light, dark, nature, fire, mystic, storm, water, frost, air
+
+	private WriteIntoPy() {
+	}
 }

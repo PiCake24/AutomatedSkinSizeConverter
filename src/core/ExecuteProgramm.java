@@ -6,12 +6,23 @@ import java.util.List;
 
 public class ExecuteProgramm {
 
+	private static final String CHARACTERPATH = "\\0WADS\\data\\characters\\";
+	private static final String SKINPATH = "\\skins\\skin";
+
+	/**
+	 * Calls ritobin and converts a bin file into a py file
+	 * 
+	 * @param champion
+	 * @param skinNumber
+	 * @param rootPath
+	 * @param cliPath
+	 */
 	public static void startProgBinToPy(String champion, int skinNumber, String rootPath, String cliPath) {
 		try {
 			List<String> l = new ArrayList<>();
 			l.add(cliPath);
-			l.add(rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".bin");
-			l.add(rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
+			l.add(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin");
+			l.add(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".py");
 			new ProcessBuilder(l).start();
 			Gui.updateLog(champion + " " + skinNumber + " .py created");
 		} catch (IOException e) {
@@ -19,13 +30,21 @@ public class ExecuteProgramm {
 		}
 	}
 
+	/**
+	 * Calls ritobin and converts a py file into a bin file
+	 * 
+	 * @param champion
+	 * @param skinNumber
+	 * @param rootPath
+	 * @param cliPath
+	 */
 	public static void startProgPytoBin(String champion, int skinNumber, String rootPath, String cliPath) {
 		try {
 			List<String> l = new ArrayList<>();
 			l.add(cliPath);
-			l.add(rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
-			l.add(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins\\skin"
-					+ skinNumber + ".bin");
+			l.add(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".py");
+			l.add(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + SKINPATH + skinNumber
+					+ ".bin");
 			new ProcessBuilder(l).start();
 			Gui.updateLog(champion + " " + skinNumber + " .bin created");
 		} catch (IOException e) {

@@ -20,21 +20,17 @@ public class Control {
 			read.readLine();
 			String line;
 			while ((line = read.readLine()) != null) {
-				if (line.charAt(0) != '#') {
-					if (line.trim() != "") {
-						String[] split = line.split(" ");
-						if (split.length > 1) {
-							map.put(split[0].toLowerCase(), Integer.parseInt(split[1]));
-							Gui.updateLog(
-									"Queuing up: " + split[0] + " with " + (Integer.parseInt(split[1]) + 1) + " skins");
-						} else {
-							System.out.println("n");
-							int number = getNumberOfSkins(split[0].toLowerCase(), rootPath);
-							map.put(split[0].toLowerCase(), number);
-							Gui.updateLog("Queuing up: " + split[0] + " with " + (number + 1) + " skins");
-						}
+				if (line.charAt(0) != '#' && !line.trim().equals("")) {
+					String[] split = line.split(" ");
+					if (split.length > 1) {
+						map.put(split[0].toLowerCase(), Integer.parseInt(split[1]));
+						Gui.updateLog(
+								"Queuing up: " + split[0] + " with " + (Integer.parseInt(split[1]) + 1) + " skins");
+					} else {
+						int number = getNumberOfSkins(split[0].toLowerCase(), rootPath);
+						map.put(split[0].toLowerCase(), number);
+						Gui.updateLog("Queuing up: " + split[0] + " with " + (number + 1) + " skins");
 					}
-
 				}
 
 			}
@@ -50,14 +46,11 @@ public class Control {
 			read.readLine();
 			String line;
 			while ((line = read.readLine()) != null) {
-				if (line.charAt(0) != '#') {
-					System.out.println(2);
-					if (line.trim() != "") {
-						System.out.println(3);
-						String[] split = line.split(" ");
-						map.put(split[0].toLowerCase(), 1);
-					}
+				if (line.charAt(0) != '#' && !line.trim().equals("")) {
+					String[] split = line.split(" ");
+					map.put(split[0].toLowerCase(), 1);
 				}
+
 			}
 		} catch (IOException e) {
 			System.out.println(e);
@@ -79,7 +72,6 @@ public class Control {
 		}
 		fillMap(map, rootPath);
 		copyMapFiles(map, rootPath, cliPath);
-		System.out.println("Done");
 		Gui.updateLog("Done");
 	}
 
@@ -130,7 +122,7 @@ public class Control {
 			}
 			convertToWad(map, rootPath, cliPath, champion);
 
-			LegendarySkins.checkForLegendary(champion, rootPath, cliPath);
+			LegendarySkins.checkForSonaLegendary(champion, rootPath, cliPath);
 		}
 	}
 
@@ -241,14 +233,12 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".bin")
 					.exists()) {
-				// System.out.println("a");
 				ExecuteProgramm.startProgBinToPy(champion, skinNumber, rootPath, cliPath);
 				try {
 					Thread.sleep(50);
 				} catch (InterruptedException e) {
 					System.out.println(e);
 				}
-//					
 			} else {
 				Gui.updateLog(champion + " " + skinNumber + " does not exist");
 			}

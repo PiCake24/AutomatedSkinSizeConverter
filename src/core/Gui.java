@@ -22,13 +22,16 @@ public class Gui {
 	static JButton convertChosenSkins;
 	static JButton createFolders;
 	static JLabel intLabel;
-	static JCheckBox checkBox;
+	static JCheckBox selfUnpackCheckBox;
 
 	static CreateOptionsFile createO = new CreateOptionsFile();
 	static BackgroundConverting bgConv = new BackgroundConverting();
 	static CreateFolders createF = new CreateFolders();
 	static InstallDependencies instDep = new InstallDependencies();
 
+	/**
+	 * Generates the Gui
+	 */
 	public static void generateGui() {
 		JFrame mainFrame = new JFrame();
 		JPanel mainPanel = new JPanel();
@@ -106,7 +109,7 @@ public class Gui {
 		log.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		log.setPreferredSize(new Dimension(400, 200));
 
-		checkBox = new JCheckBox("Enable self unpack");
+		selfUnpackCheckBox = new JCheckBox("Enable self unpack");
 
 		p2.add(createOptions);
 		p2.add(installDependencies);
@@ -114,7 +117,7 @@ public class Gui {
 		p2.add(convertChosenSkins);
 		p3.add(log);
 		p4.add(intLabel);
-		p4.add(checkBox);
+		p4.add(selfUnpackCheckBox);
 		mainPanel.add(p0);
 		mainPanel.add(p1);
 		mainPanel.add(p2);
@@ -128,6 +131,11 @@ public class Gui {
 
 	}
 
+	/**
+	 * Gives the end user information, by showing the text in the logPanel
+	 * 
+	 * @param text
+	 */
 	public static void updateLog(String text) {
 		if (logPanel != null) {
 			logPanel.add(new JLabel(text), 0);
@@ -136,6 +144,9 @@ public class Gui {
 		}
 	}
 
+	/**
+	 * Reenables all buttons again
+	 */
 	public static void enableButtons() {
 		createFolders.setEnabled(true);
 		convertChosenSkins.setEnabled(true);
@@ -143,8 +154,13 @@ public class Gui {
 		installDependencies.setEnabled(true);
 	}
 
+	/**
+	 * Returns if the selfUnpackCheckBox is checked
+	 * 
+	 * @return
+	 */
 	public static boolean getCheckBoxBool() {
-		return checkBox.getSelectedObjects() != null;
+		return selfUnpackCheckBox.getSelectedObjects() != null;
 	}
 
 	private Gui() {

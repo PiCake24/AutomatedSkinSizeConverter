@@ -8,6 +8,9 @@ import java.util.Set;
 import javax.swing.SwingWorker;
 
 public class CreateFolders extends SwingWorker<String, String> {
+	/**
+	 * Gets called when the Create Folders button get pressed
+	 */
 	@Override
 	protected String doInBackground() throws Exception {
 		createFolders();
@@ -15,6 +18,9 @@ public class CreateFolders extends SwingWorker<String, String> {
 		return null;
 	}
 
+	/**
+	 * Creates all needed folders
+	 */
 	public void createFolders() {
 		Map<String, Integer> map = new HashMap<>();
 		String[] paths = Control.getPaths();

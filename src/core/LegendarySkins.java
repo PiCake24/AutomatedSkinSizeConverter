@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LegendarySkins {
-	public static void checkForLegendary(String champion, String rootPath, String cliPath) {
-		// sona
+	public static void checkForSonaLegendary(String champion, String rootPath, String cliPath) {
 		Gui.updateLog("Checking if champion has a legendary skin");
 		if (champion.equals("sona")) {
 			// check for djsona1, 2, 3
@@ -37,14 +36,14 @@ public class LegendarySkins {
 				if (!map.containsKey(1)) {
 					map.put(1, defaultsize);
 				}
-				if (!map.containsKey(1)) {
+				if (!map.containsKey(2)) {
 					map.put(2, defaultsize);
 				}
-				if (!map.containsKey(1)) {
+				if (!map.containsKey(3)) {
 					map.put(3, defaultsize);
 				}
 			} catch (Exception e) {
-				System.out.println(e);
+				e.printStackTrace();
 				Gui.updateLog(e.getLocalizedMessage());
 			}
 
@@ -55,24 +54,34 @@ public class LegendarySkins {
 			map.put(3, 4.);
 		}
 		for (Map.Entry<Integer, Double> entry : map.entrySet()) {
-			int element = entry.getKey();
-			ExecuteProgramm.startProgBinToPy("sonadjgenre0" + element, 6, rootPath, cliPath); // TODO
+			int djsonaNr = entry.getKey();
+			ExecuteProgramm.startProgBinToPy("sonadjgenre0" + djsonaNr, 6, rootPath, cliPath);
 
-			// TODO write, export
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				Gui.updateLog(e.getLocalizedMessage());
 			}
 			// write into created file
-			WriteIntoPy.writeInto("sonadjgenre0" + element, 6, entry.getValue(), rootPath);
-			startProgPytoBinSona(element, rootPath, cliPath);
+			WriteIntoPy.writeInto("sonadjgenre0" + djsonaNr, 6, entry.getValue(), rootPath);
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				Gui.updateLog(e.getLocalizedMessage());
+			}
+			startProgPytoBinSona(djsonaNr, rootPath, cliPath);
 		}
-		// sonadjgenere01
-		// senadjgenre02
-		// senadjgenre03
 	}
 
+	/**
+	 * Calls ritobin and converts a py file into a bin file. This does not use the
+	 * almost identical version in Execute Programs, because the output directory is
+	 * different
+	 * 
+	 * @param element
+	 * @param rootPath
+	 * @param cliPath
+	 */
 	public static void startProgPytoBinSona(int element, String rootPath, String cliPath) {
 		try {
 			List<String> l = new ArrayList<>();
@@ -86,96 +95,6 @@ public class LegendarySkins {
 		}
 	}
 
+	private LegendarySkins() {
+	}
 }
-
-//	private static void convertLux(String rootPath, String cliPath) {
-//		Map<String, Double> map = new HashMap<>();
-//		File file = new File(rootPath + "\\0PutOptionFilesHere\\luxlegendary.txt");
-//		if (file.exists()) {
-//			Gui.updateLog("Size options for Lux legendary found");
-//			try (BufferedReader read = new BufferedReader(new FileReader(file))) {
-//
-//				String elemSize = read.readLine();
-//				double defaultsize = Double.parseDouble(elemSize.split(":")[1].trim());
-//				while ((elemSize = read.readLine()) != null) {
-//					String element = elemSize.split(":")[0].trim();
-//					double size = Double.parseDouble(elemSize.split(":")[1].trim());
-//					map.put(element, size);
-//				}
-//				// check if elements arent in map
-//				// add them with default size
-//				if (!map.containsKey("fire")) {
-//					map.put("fire", defaultsize);
-//				}
-//				if (!map.containsKey("water")) {
-//					map.put("water", defaultsize);
-//				}
-//				if (!map.containsKey("air")) {
-//					map.put("air", defaultsize);
-//				}
-//				if (!map.containsKey("ice")) {
-//					map.put("ice", defaultsize);
-//				}
-//				if (!map.containsKey("dark")) {
-//					map.put("dark", defaultsize);
-//				}
-//				if (!map.containsKey("magma")) {
-//					map.put("magma", defaultsize);
-//				}
-//				if (!map.containsKey("nature")) {
-//					map.put("nature", defaultsize);
-//				}
-//				if (!map.containsKey("mystic")) {
-//					map.put("mystic", defaultsize);
-//				}
-//				if (!map.containsKey("storm")) {
-//					map.put("storm", defaultsize);
-//				}
-//			} catch (Exception e) {
-//				System.out.println(e);
-//				Gui.updateLog(e.getLocalizedMessage());
-//			}
-//		} else {
-//			map.put("fire", 5.);
-//			map.put("air", 5.);
-//			map.put("ice", 5.);
-//			map.put("water", 5.);
-//			map.put("dark", 5.);
-//			map.put("magma", 5.);
-//			map.put("nature", 5.);
-//			map.put("mystic", 5.);
-//			map.put("storm", 5.);
-//		}
-//		for (Map.Entry<String, Double> entry : map.entrySet()) {
-//			String element = entry.getKey();
-//			ExecuteProgramm.startProgBinToPy("lux" + element, 7, rootPath, cliPath);
-//			try {
-//				Thread.sleep(2000);
-//			} catch (InterruptedException e) {
-//				Gui.updateLog(e.getLocalizedMessage());
-//			}
-//			// write into created file
-//			WriteIntoPy.writeInto("lux" + element, 7, entry.getValue(), rootPath);
-//			startProgPytoBinLux("lux", "lux" + element, 7, rootPath, cliPath);
-//			// create file in lux folder
-//
-//		}
-//		// skins being air, dark,fire, ice, magma, mystic, nature, storm, water
-//
-//	}
-//
-//	public static void startProgPytoBinLux(String champion, String element, int skinNumber, String rootPath,
-//			String cliPath) {
-//		try {
-//			List<String> l = new ArrayList<>();
-//			l.add(cliPath);
-//			l.add(rootPath + "\\0WADS\\data\\characters\\" + element + "\\skins\\skin" + skinNumber + ".py");
-//			l.add(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + element + "\\skins\\skin"
-//					+ skinNumber + ".bin");
-//			new ProcessBuilder(l).start();
-//			Gui.updateLog(element + " " + skinNumber + " .bin created");
-//		} catch (IOException e) {
-//			Gui.updateLog(e.getLocalizedMessage());
-//		}
-//	}
-//}
