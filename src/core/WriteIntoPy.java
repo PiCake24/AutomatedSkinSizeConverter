@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ public class WriteIntoPy {
 	private static final String MYSTIC = "mystic";
 	private static final String STORM = "storm";
 
-	public static void writeInto(String champion, int skinNumber, double scale, String rootPath) {
+	public static void writeInto(String champion, int skinNumber, double scale, String rootPath) throws IOException {
 		File file = new File(
 				rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -54,12 +55,10 @@ public class WriteIntoPy {
 			try (Writer w = new BufferedWriter(new FileWriter(file))) {
 				w.write(outputString);
 			}
-		} catch (Exception e) {
-			Gui.updateLog(e.getLocalizedMessage());
 		}
 	}
 
-	public static void writeLuxLegendaryIntoPy(String rootPath) {
+	public static void writeLuxLegendaryIntoPy(String rootPath) throws IOException {
 		Map<String, Double> map = new HashMap<>();
 		File file = new File(rootPath + "\\0PutOptionFilesHere\\luxlegendary.txt");
 		if (file.exists()) {
@@ -105,9 +104,6 @@ public class WriteIntoPy {
 				if (!map.containsKey(STORM)) {
 					map.put(STORM, defaultsize);
 				}
-			} catch (Exception e) {
-				System.out.println(e);
-				Gui.updateLog(e.getLocalizedMessage());
 			}
 		} else {
 			Gui.updateLog("No size options for Lux legendary found, setting to default(5)");
@@ -125,7 +121,7 @@ public class WriteIntoPy {
 		writeLux(rootPath, map);
 	}
 
-	private static void writeLux(String rootPath, Map<String, Double> map) {
+	private static void writeLux(String rootPath, Map<String, Double> map) throws IOException {
 		List<String> order = new ArrayList<>();
 		order.add(LIGHT);
 		order.add(MAGMA);
@@ -170,9 +166,6 @@ public class WriteIntoPy {
 			try (Writer w = new BufferedWriter(new FileWriter(file))) {
 				w.write(a);
 			}
-		} catch (Exception e) {
-			System.out.println(e);
-			Gui.updateLog(e.getLocalizedMessage());
 		}
 	}
 

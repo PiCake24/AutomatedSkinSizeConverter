@@ -21,19 +21,17 @@ import java.util.concurrent.TimeUnit;
 public class UnpackWAD {
 
 	// use console and python to unpack the files and move them
-	static void unpackWAD(Map<String, Integer> map, String pythonPath, String leaguePath, String rootPath) {
+	static void unpackWAD(Map<String, Integer> map, String pythonPath, String leaguePath, String rootPath)
+			throws InterruptedException {
 		unpackAllWAD(map, pythonPath, leaguePath);
 
 		moveFolders(map, leaguePath, rootPath);
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			System.out.println(e);
-		}
+		Thread.sleep(5000);
 		Gui.updateLog("All champions moved");
 	}
 
-	private static void unpackAllWAD(Map<String, Integer> map, final String pythonPath, final String leaguePath) {
+	private static void unpackAllWAD(Map<String, Integer> map, final String pythonPath, final String leaguePath)
+			throws InterruptedException {
 		Set<String> set = map.keySet();
 		ExecutorService executor = Executors.newFixedThreadPool(4);
 		CompletionService<Integer> completionService = new ExecutorCompletionService<>(executor);
@@ -54,12 +52,7 @@ public class UnpackWAD {
 			});
 		}
 		executor.shutdown();
-		try {
-			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			e.printStackTrace();
-		}
+		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 
 		Gui.updateLog("All unpack tasks completed.");
 	}

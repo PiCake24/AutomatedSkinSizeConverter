@@ -18,7 +18,6 @@ public class Gui {
 	static JPanel logPanel;
 	static JScrollPane log;
 	static JButton createOptions;
-	static JButton installDependencies;
 	static JButton convertChosenSkins;
 	static JButton createFolders;
 	static JLabel intLabel;
@@ -27,7 +26,6 @@ public class Gui {
 	static CreateOptionsFile createO = new CreateOptionsFile();
 	static BackgroundConverting bgConv = new BackgroundConverting();
 	static CreateFolders createF = new CreateFolders();
-	static InstallDependencies instDep = new InstallDependencies();
 
 	/**
 	 * Generates the Gui
@@ -54,23 +52,7 @@ public class Gui {
 				createOptions.setEnabled(false);
 				convertChosenSkins.setEnabled(false);
 				createFolders.setEnabled(false);
-				installDependencies.setEnabled(false);
 				createO.execute();
-
-			}
-		});
-
-		installDependencies = new JButton("Install Dependencies");
-		installDependencies.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				instDep = new InstallDependencies();
-				createOptions.setEnabled(false);
-				convertChosenSkins.setEnabled(false);
-				createFolders.setEnabled(false);
-				installDependencies.setEnabled(false);
-				instDep.execute();
 
 			}
 		});
@@ -84,7 +66,6 @@ public class Gui {
 				createOptions.setEnabled(false);
 				convertChosenSkins.setEnabled(false);
 				createFolders.setEnabled(false);
-				installDependencies.setEnabled(false);
 				createF.execute();
 			}
 		});
@@ -97,7 +78,6 @@ public class Gui {
 				createOptions.setEnabled(false);
 				convertChosenSkins.setEnabled(false);
 				createFolders.setEnabled(false);
-				installDependencies.setEnabled(false);
 				bgConv.execute();
 			}
 		});
@@ -112,7 +92,6 @@ public class Gui {
 		selfUnpackCheckBox = new JCheckBox("Enable self unpack");
 
 		p2.add(createOptions);
-		p2.add(installDependencies);
 		p2.add(createFolders);
 		p2.add(convertChosenSkins);
 		p3.add(log);
@@ -145,13 +124,12 @@ public class Gui {
 	}
 
 	/**
-	 * Reenables all buttons again
+	 * Reenables all buttons
 	 */
 	public static void enableButtons() {
 		createFolders.setEnabled(true);
 		convertChosenSkins.setEnabled(true);
 		createOptions.setEnabled(true);
-		installDependencies.setEnabled(true);
 	}
 
 	/**

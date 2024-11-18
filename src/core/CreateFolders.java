@@ -1,6 +1,9 @@
 package core;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +23,14 @@ public class CreateFolders extends SwingWorker<String, String> {
 
 	/**
 	 * Creates all needed folders
+	 * 
+	 * @throws IOException
 	 */
-	public void createFolders() {
+	public void createFolders() throws IOException {
 		Map<String, Integer> map = new HashMap<>();
 		String[] paths = Control.getPaths();
 		String rootPath = paths[0];
-		Control.getChampions(map, rootPath);
+		getChampions(map, rootPath);
 
 		File file = new File(rootPath + "\\0WADS");
 		file.mkdir();
@@ -38,5 +43,25 @@ public class CreateFolders extends SwingWorker<String, String> {
 			file.mkdirs();
 		}
 
+	}
+
+	private static void getChampions(Map<String, Integer> map, String rootPath) throws IOException { // TODO rework into
+																										// better shape
+		try (BufferedReader read = new BufferedReader(new FileReader(new File("Options.txt")))) {
+			read.readLine();
+			read.readLine();
+			read.readLine();
+			String line;
+			while ((line = read.readLine()) != null) {
+				if (line.charAt(0) != '#' && !line.trim().equals("")) {
+					String[] split = line.split(" ");
+					map.put(split[0].toLowerCase(), 1);
+				}
+
+			}
+		} catch (IOException e) {
+			System.out.println(e);
+			throw new IOException();
+		}
 	}
 }
