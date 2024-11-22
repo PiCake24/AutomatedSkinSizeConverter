@@ -25,12 +25,11 @@ public class Control {
 		Map<String, Integer> map = new HashMap<>();
 		String[] paths = getPaths();
 		String rootPath = paths[0];
-//		String cliPath = paths[1]; // TODO not needed anymore
 		String leaguePath = paths[2];
 
 		addChampionsToMap(map, rootPath);
 
-		// TODO create folders that dont exist already
+		createFolders(map, rootPath);
 
 		Gui.updateLog("Unpacking Ritobin");
 		if (!UnpackExe.unpackRitobin()) {
@@ -154,13 +153,19 @@ public class Control {
 		return numberOfSkins;
 	}
 
-	private static void n() {
-//		Set<String> set = map.keySet();
-//		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
-//			String champion = (String) set.toArray()[championNumber];
-//			file = new File(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins");
-//			file.mkdirs();
-//		}
+	/**
+	 * Creates all needed folders
+	 * 
+	 * @param map
+	 * @param rootPath
+	 */
+	private static void createFolders(Map<String, Integer> map, String rootPath) {
+		Set<String> set = map.keySet();
+		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
+			String champion = (String) set.toArray()[championNumber];
+			File file = new File(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins");
+			file.mkdirs();
+		}
 	}
 
 	/**
@@ -190,6 +195,7 @@ public class Control {
 	}
 
 	/**
+	 * Converts all files to .py
 	 * 
 	 * @param map
 	 * @param rootPath
@@ -209,6 +215,14 @@ public class Control {
 		}
 	}
 
+	/**
+	 * writes into the files and changes their size accordingly
+	 * 
+	 * @param map
+	 * @param rootPath
+	 * @param champion
+	 * @throws IOException
+	 */
 	private static void rewriteFile(Map<String, Integer> map, String rootPath, String champion) throws IOException {
 		ArrayList<Double> sizes = getSize(champion, map.get(champion), rootPath);
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
@@ -222,6 +236,15 @@ public class Control {
 		}
 	}
 
+	/**
+	 * returns the size of the champion and skin number as arraylist
+	 * 
+	 * @param champion
+	 * @param skinNumbers
+	 * @param rootPath
+	 * @return
+	 * @throws IOException
+	 */
 	private static ArrayList<Double> getSize(String champion, int skinNumbers, String rootPath) throws IOException {
 		ArrayList<Double> sizes = new ArrayList<>();
 		File file = new File(rootPath + "\\0PutOptionFilesHere\\" + champion + ".txt");
@@ -265,6 +288,15 @@ public class Control {
 		return sizes;
 	}
 
+	/**
+	 * Converts the file back to .bin
+	 * 
+	 * @param map
+	 * @param rootPath
+	 * @param champion
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
 	private static void convertToWad(Map<String, Integer> map, String rootPath, String champion)
 			throws InterruptedException, IOException {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
@@ -273,5 +305,9 @@ public class Control {
 				Thread.sleep(50);
 			}
 		}
+	}
+
+	private Control() {
+
 	}
 }

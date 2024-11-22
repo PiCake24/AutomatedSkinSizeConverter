@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class UnpackExe {
+	private static final String TMPDIR = "java.io.tmpdir";
 	private static Path unpackedRitobin;
 	private static Path unpackedCDTBTranslator;
 	private static Path unpackedFolder;
@@ -23,7 +24,7 @@ public class UnpackExe {
 	 */
 	static boolean unpackRitobin() throws IOException {
 		unpackHashes();
-		String tempDir = System.getProperty("java.io.tmpdir");
+		String tempDir = System.getProperty(TMPDIR);
 		unpackedRitobin = Paths.get(tempDir, "extractedRitobin.exe");
 		try (InputStream in = new FileInputStream("./resources/ritobin_cli.exe");
 				OutputStream out = Files.newOutputStream(unpackedRitobin)) {
@@ -55,7 +56,7 @@ public class UnpackExe {
 	 * @throws IOException
 	 */
 	private static void unpackHashes() throws IOException {
-		String tempDir = System.getProperty("java.io.tmpdir");
+		String tempDir = System.getProperty(TMPDIR);
 		unpackedFolder = Paths.get(tempDir, "hashes");
 		File resourceFolder = new File("./resources/hashes");
 
@@ -102,7 +103,7 @@ public class UnpackExe {
 	 * @throws IOException
 	 */
 	static boolean unpackCDTBTranslator() throws IOException {
-		String tempDir = System.getProperty("java.io.tmpdir");
+		String tempDir = System.getProperty(TMPDIR);
 		unpackedCDTBTranslator = Paths.get(tempDir, "extractedCDTBTranslator.exe");
 		try (InputStream in = new FileInputStream("resources/CDTBTranslator.exe");
 				OutputStream out = Files.newOutputStream(unpackedCDTBTranslator)) {

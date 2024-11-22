@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class LegendarySkins {
+	private static final String DJSONA = "sonadjgenre0";
+
 	public static void checkForSonaLegendary(String champion, String rootPath)
 			throws InterruptedException, IOException {
 		Gui.updateLog("Checking if champion has a legendary skin");
@@ -51,39 +53,39 @@ public class LegendarySkins {
 			map.put(3, 4.);
 		}
 		for (Map.Entry<Integer, Double> entry : map.entrySet()) {
-			int djsonaNr = entry.getKey();
-			ExecuteRitobin.startProgBinToPy("sonadjgenre0" + djsonaNr, 6, rootPath);
+			int djSonaNr = entry.getKey();
+			ExecuteRitobin.startProgBinToPy(DJSONA + djSonaNr, 6, rootPath);
 
 			Thread.sleep(2000);
 
 			// write into created file
-			WriteIntoPy.writeInto("sonadjgenre0" + djsonaNr, 6, entry.getValue(), rootPath);
+			WriteIntoPy.writeInto(DJSONA + djSonaNr, 6, entry.getValue(), rootPath);
 
 			Thread.sleep(2000);
 
-			startProgPytoBinSona(djsonaNr, rootPath);
+			startProgPytoBinSona(djSonaNr, rootPath);
 		}
 	}
 
 	/**
-	 * Calls ritobin and converts a py file into a bin file. This does not use the
+	 * Calls Ritobin and converts a py file into a bin file. This does not use the
 	 * almost identical version in Execute Programs, because the output directory is
 	 * different
 	 * 
-	 * @param element
+	 * @param djSonaNr
 	 * @param rootPath
 	 * @param cliPath
 	 * @throws IOException
 	 */
-	public static void startProgPytoBinSona(int element, String rootPath) throws IOException {
+	public static void startProgPytoBinSona(int djSonaNr, String rootPath) throws IOException {
 		String cliPath = UnpackExe.getUnpackedRitobin().toString();
 
 		List<String> l = new ArrayList<>();
 		l.add(cliPath);
-		l.add(rootPath + "\\0WADS\\data\\characters\\sonadjgenre0" + element + "\\skins\\skin6.py");
-		l.add(rootPath + "\\sona.wad.client\\data\\characters\\sonadjgenre0" + element + "\\skins\\skin6.bin");
+		l.add(rootPath + "\\0WADS\\data\\characters\\sonadjgenre0" + djSonaNr + "\\skins\\skin6.py");
+		l.add(rootPath + "\\sona.wad.client\\data\\characters\\sonadjgenre0" + djSonaNr + "\\skins\\skin6.bin");
 		new ProcessBuilder(l).start();
-		Gui.updateLog("sonadjgenre0" + element + ".bin created");
+		Gui.updateLog(DJSONA + djSonaNr + ".bin created");
 
 	}
 
