@@ -12,10 +12,20 @@ import java.util.Map;
 public class LegendarySkins {
 	private static final String DJSONA = "sonadjgenre0";
 
-	public static void checkForSonaLegendary(String champion, String rootPath)
+	/**
+	 * Checks if the current champion is Sona
+	 * 
+	 * @param champion
+	 * @param rootPath
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+
+	public static void checkForLegendary(Map<String, Integer> map, String champion, String rootPath)
 			throws InterruptedException, IOException {
 		Gui.updateLog("Checking if champion has a legendary skin");
-		if (champion.equals("sona")) {
+		int maxSkinNumber = map.get(champion);
+		if (champion.equals("sona") && maxSkinNumber >= 6) {
 			// check for djsona1, 2, 3
 			convertSona(rootPath);
 		} else {
@@ -23,6 +33,13 @@ public class LegendarySkins {
 		}
 	}
 
+	/**
+	 * Converts DJSona
+	 * 
+	 * @param rootPath
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
 	private static void convertSona(String rootPath) throws InterruptedException, IOException {
 		Map<Integer, Double> map = new HashMap<>();
 		File file = new File(rootPath + "\\0PutOptionFilesHere\\sonalegendary.txt");

@@ -119,8 +119,8 @@ public class Gui {
 			if (VersionChecker.isNewVersionAvailable(CURRENT_VERSION, latestVersion)) {
 				createPopup(latestVersion);
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}

@@ -25,6 +25,15 @@ public class WriteIntoPy {
 	private static final String MYSTIC = "mystic";
 	private static final String STORM = "storm";
 
+	/**
+	 * Reads the champion file and writes the new size into it
+	 * 
+	 * @param champion
+	 * @param skinNumber
+	 * @param scale
+	 * @param rootPath
+	 * @throws IOException
+	 */
 	public static void writeInto(String champion, int skinNumber, double scale, String rootPath) throws IOException {
 		File file = new File(
 				rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
@@ -58,7 +67,13 @@ public class WriteIntoPy {
 		}
 	}
 
-	public static void writeLuxLegendaryIntoPy(String rootPath) throws IOException {
+	/**
+	 * Prepares writing Elementalist Lux
+	 * 
+	 * @param rootPath
+	 * @throws IOException
+	 */
+	public static void prepWriteLuxLegendaryIntoPy(String rootPath) throws IOException {
 		Map<String, Double> map = new HashMap<>();
 		File file = new File(rootPath + "\\0PutOptionFilesHere\\luxlegendary.txt");
 		if (file.exists()) {
@@ -72,37 +87,7 @@ public class WriteIntoPy {
 					map.put(element, size);
 				}
 				// check if elements arent in map
-				// add them with default size
-				if (!map.containsKey(LIGHT)) {
-					map.put(LIGHT, defaultsize);
-				}
-				if (!map.containsKey(FIRE)) {
-					map.put(FIRE, defaultsize);
-				}
-				if (!map.containsKey(WATER)) {
-					map.put(WATER, defaultsize);
-				}
-				if (!map.containsKey(AIR)) {
-					map.put(AIR, defaultsize);
-				}
-				if (!map.containsKey(ICE)) {
-					map.put(ICE, defaultsize);
-				}
-				if (!map.containsKey(DARK)) {
-					map.put(DARK, defaultsize);
-				}
-				if (!map.containsKey(MAGMA)) {
-					map.put(MAGMA, defaultsize);
-				}
-				if (!map.containsKey(NATURE)) {
-					map.put(NATURE, defaultsize);
-				}
-				if (!map.containsKey(MYSTIC)) {
-					map.put(MYSTIC, defaultsize);
-				}
-				if (!map.containsKey(STORM)) {
-					map.put(STORM, defaultsize);
-				}
+				addMapDefaultSize(map, defaultsize);
 			}
 		} else {
 			Gui.updateLog("No size options for Lux legendary found, setting to default(5)");
@@ -120,6 +105,52 @@ public class WriteIntoPy {
 		writeLux(rootPath, map);
 	}
 
+	/**
+	 * Adds sizes to default, when they are not set in the optionsfile
+	 * 
+	 * @param map
+	 * @param defaultsize
+	 */
+	static void addMapDefaultSize(Map<String, Double> map, double defaultsize) {
+		if (!map.containsKey(LIGHT)) {
+			map.put(LIGHT, defaultsize);
+		}
+		if (!map.containsKey(FIRE)) {
+			map.put(FIRE, defaultsize);
+		}
+		if (!map.containsKey(WATER)) {
+			map.put(WATER, defaultsize);
+		}
+		if (!map.containsKey(AIR)) {
+			map.put(AIR, defaultsize);
+		}
+		if (!map.containsKey(ICE)) {
+			map.put(ICE, defaultsize);
+		}
+		if (!map.containsKey(DARK)) {
+			map.put(DARK, defaultsize);
+		}
+		if (!map.containsKey(MAGMA)) {
+			map.put(MAGMA, defaultsize);
+		}
+		if (!map.containsKey(NATURE)) {
+			map.put(NATURE, defaultsize);
+		}
+		if (!map.containsKey(MYSTIC)) {
+			map.put(MYSTIC, defaultsize);
+		}
+		if (!map.containsKey(STORM)) {
+			map.put(STORM, defaultsize);
+		}
+	}
+
+	/**
+	 * Writes Elementalist Lux
+	 * 
+	 * @param rootPath
+	 * @param map
+	 * @throws IOException
+	 */
 	private static void writeLux(String rootPath, Map<String, Double> map) throws IOException {
 		List<String> order = new ArrayList<>();
 		order.add(LIGHT);

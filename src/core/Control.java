@@ -190,7 +190,7 @@ public class Control {
 
 			convertToWad(map, rootPath, champion);
 
-			LegendarySkins.checkForSonaLegendary(champion, rootPath);
+			LegendarySkins.checkForLegendary(map, champion, rootPath);
 		}
 	}
 
@@ -228,7 +228,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				if (champion.equals("lux") && skinNumber == 7) {
-					WriteIntoPy.writeLuxLegendaryIntoPy(rootPath);
+					WriteIntoPy.prepWriteLuxLegendaryIntoPy(rootPath);
 				} else {
 					WriteIntoPy.writeInto(champion, skinNumber, sizes.get(skinNumber), rootPath);
 				}
@@ -252,32 +252,7 @@ public class Control {
 			Gui.updateLog("Size Options found");
 			try (BufferedReader read = new BufferedReader(new FileReader(file))) {
 				// Add default size
-				String size = read.readLine();
-				String[] split = size.split(":");
-				double defaulSize = Double.parseDouble(split[1].trim());
-				int prevMinSkin = -1;
-
-				while ((size = read.readLine()) != null) {
-					if (!size.trim().equals("")) {
-						split = size.split(":");
-						int minSkin = Integer.parseInt(split[0]);
-
-						// fill up until current skinnumber
-						for (int i = prevMinSkin + 1; i < minSkin; i++) {
-							if (i <= skinNumbers) {
-								sizes.add(defaulSize);
-							}
-						}
-						if (minSkin <= skinNumbers) {
-							sizes.add(Double.parseDouble(split[1].trim()));
-						}
-						prevMinSkin = minSkin;
-					}
-				}
-				// from prevminSkin to skinNumbers fill with default size
-				for (int i = prevMinSkin + 1; i <= skinNumbers; i++) {
-					sizes.add(defaulSize);
-				}
+				addSizesToArray(read, skinNumbers, sizes);
 			}
 		} else {
 			Gui.updateLog("No size options found, setting size to default(5)");
@@ -286,6 +261,43 @@ public class Control {
 			}
 		}
 		return sizes;
+	}
+
+	/**
+	 * adds the sizes to the sizes Array
+	 * 
+	 * @param read
+	 * @param skinNumbers
+	 * @param sizes
+	 * @throws IOException
+	 */
+	private static void addSizesToArray(BufferedReader read, int skinNumbers, ArrayList<Double> sizes)
+			throws IOException {
+		String size = read.readLine();
+		String[] split = size.split(":");
+		double defaulSize = Double.parseDouble(split[1].trim());
+		int prevMinSkin = -1;
+		while ((size = read.readLine()) != null) {
+			if (!size.trim().equals("")) {
+				split = size.split(":");
+				int minSkin = Integer.parseInt(split[0]);
+
+				// fill up until current skinnumber
+				for (int i = prevMinSkin + 1; i < minSkin; i++) {
+					if (i <= skinNumbers) {
+						sizes.add(defaulSize);
+					}
+				}
+				if (minSkin <= skinNumbers) {
+					sizes.add(Double.parseDouble(split[1].trim()));
+				}
+				prevMinSkin = minSkin;
+			}
+		}
+		// from prevminSkin to skinNumbers fill with default size
+		for (int i = prevMinSkin + 1; i <= skinNumbers; i++) {
+			sizes.add(defaulSize);
+		}
 	}
 
 	/**
