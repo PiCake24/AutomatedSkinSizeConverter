@@ -64,7 +64,6 @@ public class WriteIntoPy {
 		if (file.exists()) {
 			Gui.updateLog("Size options for Lux legendary found");
 			try (BufferedReader read = new BufferedReader(new FileReader(file))) {
-
 				String elemSize = read.readLine();
 				double defaultsize = Double.parseDouble(elemSize.split(":")[1].trim());
 				while ((elemSize = read.readLine()) != null) {

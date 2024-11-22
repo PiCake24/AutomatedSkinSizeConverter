@@ -1,14 +1,19 @@
 package core;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
@@ -30,7 +35,7 @@ public class Gui {
 	/**
 	 * Generates the Gui
 	 */
-	public static void generateGui() {
+	public static void generateGui(final String CURRENT_VERSION) {
 		JFrame mainFrame = new JFrame();
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
@@ -108,6 +113,37 @@ public class Gui {
 		mainFrame.setResizable(false);
 		mainFrame.setVisible(true);
 
+		String latestVersion;
+		try {
+			latestVersion = VersionChecker.getLatestVersionFromGitHub();
+			if (VersionChecker.isNewVersionAvailable(CURRENT_VERSION, latestVersion)) {
+				createPopup(latestVersion);
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * Creates a popup that redericts the user to github
+	 * 
+	 * @param latestVersion
+	 */
+	public static void createPopup(String latestVersion) {
+		String message = "A new version (" + latestVersion + ") is available! Please update.";
+		String title = "Update Available";
+		int option = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.DEFAULT_OPTION,
+				JOptionPane.INFORMATION_MESSAGE);
+
+		if (option == JOptionPane.OK_OPTION && Desktop.isDesktopSupported()
+				&& Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+			try {
+				Desktop.getDesktop().browse(new URI("https://github.com/PiCake24/AutomatedSkinSizeConverter/releases"));
+			} catch (IOException | URISyntaxException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
