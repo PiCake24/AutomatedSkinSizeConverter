@@ -15,9 +15,15 @@ public class Control {
 	private static final String CHARACTERPATH = "\\0WADS\\data\\characters\\";
 	private static final String SKINPATH = "\\skins\\skin";
 
+	/**
+	 * The main control method
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	static void control() throws IOException, InterruptedException {
 		Map<String, Integer> map = new HashMap<>();
-		String[] paths = getPaths(); // TODO til here
+		String[] paths = getPaths();
 		String rootPath = paths[0];
 //		String cliPath = paths[1]; // TODO not needed anymore
 		String leaguePath = paths[2];
@@ -26,33 +32,31 @@ public class Control {
 
 		// TODO create folders that dont exist already
 
+		Gui.updateLog("Unpacking Ritobin");
 		if (!UnpackExe.unpackRitobin()) {
-			// todo abort
+			throw new IOException();
 		}
 
-		// TODO unpack ritobin
-
 		if (Gui.getCheckBoxBool()) {
+			Gui.updateLog("Unpacking CDTB");
 			if (!UnpackExe.unpackCDTBTranslator()) {
 				throw new IOException();
 			}
-
+			Gui.updateLog("Updating hashes");
 			if (!CDTBExecution.downloadHashes()) {
 				throw new IOException();
 			}
 
-			if (!CDTBExecution.extractFiles(map, leaguePath, rootPath)) {
+			if (!CDTBExecution.extractAllFiles(map, leaguePath, rootPath)) {
 				throw new IOException();
 			}
 
-			// TODO errorbehandlumng wie?
-
-			UnpackExe.removeCDTBTranslator(); // TODO error
+			UnpackExe.removeCDTBTranslator();
 		}
 
 		translateAndRewriteFiles(map, rootPath);
 
-		UnpackExe.removeRitobin(); // TODO error
+		UnpackExe.removeRitobin();
 
 		Gui.updateLog("Done");
 	}
@@ -150,6 +154,23 @@ public class Control {
 		return numberOfSkins;
 	}
 
+	private static void n() {
+//		Set<String> set = map.keySet();
+//		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
+//			String champion = (String) set.toArray()[championNumber];
+//			file = new File(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins");
+//			file.mkdirs();
+//		}
+	}
+
+	/**
+	 * creates all files for all champions in the map
+	 * 
+	 * @param map
+	 * @param rootPath
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
 	private static void translateAndRewriteFiles(Map<String, Integer> map, String rootPath)
 			throws InterruptedException, IOException {
 		Set<String> set = map.keySet();
@@ -168,6 +189,14 @@ public class Control {
 		}
 	}
 
+	/**
+	 * 
+	 * @param map
+	 * @param rootPath
+	 * @param champion
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
 	private static void convertToPython(Map<String, Integer> map, String rootPath, String champion)
 			throws InterruptedException, IOException {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
@@ -183,7 +212,7 @@ public class Control {
 	private static void rewriteFile(Map<String, Integer> map, String rootPath, String champion) throws IOException {
 		ArrayList<Double> sizes = getSize(champion, map.get(champion), rootPath);
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
-			if (new File(rootPath + CHARACTERPATH + champion + "\\skins\\skin" + skinNumber + ".bin").exists()) {
+			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				if (champion.equals("lux") && skinNumber == 7) {
 					WriteIntoPy.writeLuxLegendaryIntoPy(rootPath);
 				} else {
@@ -239,7 +268,7 @@ public class Control {
 	private static void convertToWad(Map<String, Integer> map, String rootPath, String champion)
 			throws InterruptedException, IOException {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
-			if (new File(rootPath + CHARACTERPATH + champion + "\\skins\\skin" + skinNumber + ".bin").exists()) {
+			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgPytoBin(champion, skinNumber, rootPath);
 				Thread.sleep(50);
 			}
