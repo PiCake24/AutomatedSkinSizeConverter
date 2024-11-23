@@ -25,7 +25,7 @@ public class Control {
 		Map<String, Integer> map = new HashMap<>();
 		String[] paths = getPaths();
 		String rootPath = paths[0];
-		String leaguePath = paths[2];
+		String leaguePath = paths[1];
 
 		addChampionsToMap(map, rootPath);
 
@@ -71,22 +71,17 @@ public class Control {
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
 			String s1 = read.readLine();
 			String s2 = read.readLine();
-			String s3 = read.readLine();
 			String[] split1 = s1.split(":");
 			String[] split2 = s2.split(":");
-			String[] split3 = s3.split(":");
 			s1 = split1[1] + ":" + split1[2];
 			s2 = split2[1] + ":" + split2[2];
-			s3 = split3[1] + ":" + split3[2];
 			paths = new String[3];
 			paths[0] = s1.trim();
 			paths[1] = s2.trim();
-			paths[2] = s3.trim();
-			paths[2] += "\\League of Legends\\Game\\DATA\\FINAL\\Champions";
+			paths[1] += "\\Game\\DATA\\FINAL\\Champions";
 		}
 		Gui.updateLog("Root Path:" + paths[0]);
-		Gui.updateLog("Ritobin Cli Path:" + paths[1]);
-		Gui.updateLog("League Path: " + paths[2]);
+		Gui.updateLog("League Path: " + paths[1]);
 		return paths;
 	}
 
@@ -100,7 +95,7 @@ public class Control {
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
 			Gui.updateLog("Reading options file");
 			String line;
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 2; i++) {
 				line = read.readLine();
 				if (line == null) {
 					throw new IOException();
@@ -160,10 +155,12 @@ public class Control {
 	 * @param rootPath
 	 */
 	private static void createFolders(Map<String, Integer> map, String rootPath) {
+		File file = new File(rootPath + "\\0WADS");
+		file.mkdir();
 		Set<String> set = map.keySet();
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
-			File file = new File(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins");
+			file = new File(rootPath + "\\" + champion + ".wad.client\\data\\characters\\" + champion + "\\skins");
 			file.mkdirs();
 		}
 	}
