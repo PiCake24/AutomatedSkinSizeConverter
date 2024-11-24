@@ -59,7 +59,8 @@ public class CDTBExecution {
 		String pythonScript = UnpackExe.getUnpackedCDTBTranslator().toString();
 		String inputPath = leaguePath + "\\" + champion + ".wad.client";
 		String outputPath = rootPath + "\\0WADS\\";
-		ProcessBuilder pb2 = new ProcessBuilder(pythonScript, "unpack_file", inputPath, outputPath);
+		String pattern = "*data*skins/*";
+		ProcessBuilder pb2 = new ProcessBuilder(pythonScript, "unpack_file", inputPath, outputPath, pattern);
 		Process process2 = pb2.start();
 		return printProcessOutput(process2);
 	}
