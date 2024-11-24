@@ -9,6 +9,8 @@ This program allows the user to change the size of league of legends skins in gr
 While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) to 
 actually use the mods.
 
+You can download the [latest release from the "Releases" section](https://github.com/PiCake24/AutomatedSkinSizeConverter/releases/tag/v1.2.0).
+
 ## How to set up the program
 
 Step 1: run the .exe
@@ -47,7 +49,7 @@ Step 2: Save the Options.txt file
 
 Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see below how to create them).
 
-Step 4: In the üprogram check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+Step 4: Move the skin files via Obsidian into the 0WADS folder
 
 Step 5: Click on Convert Chosen Champion and wait for the program to finish.
 
