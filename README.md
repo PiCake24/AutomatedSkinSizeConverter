@@ -63,7 +63,13 @@ If you want to set different sizes for each skin you have to create a file in th
 
 Then the first line should contain the champion, followed by a colon, followed by the default size.
 
-In the lines below that you should put: The skin number, then a colon, the the size for that skin. The skin numbers should be sorted. 
+(Stop here if you want every skin to have the same size)
+
+If you additionally want to tweak specific skin sizes, in the lines below that you should put: The skin number, then a colon, then the size for that skin.
+
+(Repeat for any skin u want changed)
+
+The skin numbers should be sorted.
 
 An Example:
 
