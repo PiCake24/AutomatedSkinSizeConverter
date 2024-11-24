@@ -81,12 +81,29 @@ Note that the default size without a size options file is set to 5. So if you wa
 
 ## Further notes
 
-When adding names to the Options.txt and as size Options files championnames should not contain a space.
+When adding names to the Options.txt or to the size options files the champion names should not contain a space.
 
-So instead of Miss Fortune write missfortune
+So instead of `Miss Fortune` write `missfortune`
 
-For DJ Sona and Elementalist Lux you have to create luxlegendary.txt and sonalegendary.txt in the 0PutOptionFilesHere folder.
+DJ Sona and Elementalist Lux will be done automatically, when their specific number is set to convert.
 
-They will be automatically done, when their skinnumber gets converted.
+To set a different size for DJ Sona and Elementalist Lux you have to create luxlegendary.txt and sonalegendary.txt in the 0PutSIzeOptionFilesHere folder.
 
-Or just look at the example optins file.
+sonalegendary should look like this:
+```
+Sona: 5
+1: 4.25
+2: 4.5
+3: 4.75
+```
+
+luxlegendary should look like this
+```
+lux: 5
+magma: 7
+dark: 7
+mystic: 7
+ice: 7
+storm: 7
+light: 3
+```
