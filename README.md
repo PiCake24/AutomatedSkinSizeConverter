@@ -9,23 +9,23 @@ This program allows the user to change the size of league of legends skins in gr
 While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) to 
 actually use the mods.
 
-You also should create a folder, where every mod should be saved to.
-
 ## How to set up the program
 
 Step 1: run the .exe
 
-Step 2: Click on Create Options File
+Step 2: Click on Create Options File. This creates the File which the program needs to run. This file should always be in the same folder as the program itself.
 
 Step 3: Open the Options.txt File the program created in the same folder where the program is located.
 
-Step 4: Add behind Root Path: the Path to the folder, where everything should be created in, e.g. which you created in preparation.
+Step 4: Add behind Root Path: the Path to the folder, where the mods should be put in. You have to create the folder yourself.
 
-Step 6: Add behind League Path the Path to the League of Legends Games Folder, where the LeagueClient.exe is located.
+Step 5: Add behind League Path: the Path to the League of Legends Games Folder, where the League Of Legends.exe is located. (It should end something like Riot Games\League of Legends\Game)
 
-Step 7:Save the Options.txt file
+Step 6:Save the Options.txt file
 
-Step 8: Now press Generate Folders to create the needed Folders in the root folder.
+(Optional) Step 7: Now press Generate Folders to create the needed Folders in the root folder.
+
+You only need to do this, if you want to set the skins to a different size. The size without using these folders is set to 5.
 
 ## How to use the program
 
@@ -33,17 +33,17 @@ Step 1: Add the champions you want to convert into the Options.txt file in the l
 
 `ahri`
 
-Additionally you can limit the maximum number of skins being converted by putting a number separated by a space behind the champion name. E.g.
+(Optional) Additionally you can limit the maximum number of skins being converted by putting a number separated by a space behind the champion name. E.g.
 
 `ahri 61`
 
-This will convert all skins until skin 61.
+This will convert all skins up until and including skin 61.
 
 Step 2: Save the Options.txt file
 
 Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see below how to create them).
 
-Step 4: Click on Convert chosen champion and wait for the program to finish
+Step 4: Click on Convert Chosen Champion and wait for the program to finish.
 
 Check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
