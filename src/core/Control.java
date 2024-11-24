@@ -78,7 +78,7 @@ public class Control {
 			paths = new String[3];
 			paths[0] = s1.trim();
 			paths[1] = s2.trim();
-			paths[1] += "\\Game\\DATA\\FINAL\\Champions";
+			paths[1] += "\\DATA\\FINAL\\Champions";
 		}
 		Gui.updateLog("Root Path:" + paths[0]);
 		Gui.updateLog("League Path: " + paths[1]);
@@ -244,7 +244,7 @@ public class Control {
 	 */
 	private static ArrayList<Double> getSize(String champion, int skinNumbers, String rootPath) throws IOException {
 		ArrayList<Double> sizes = new ArrayList<>();
-		File file = new File(rootPath + "\\0PutOptionFilesHere\\" + champion + ".txt");
+		File file = new File(rootPath + "\\0PutSizeOptionFilesHere\\" + champion + ".txt");
 		if (file.exists()) {
 			Gui.updateLog("Size Options found");
 			try (BufferedReader read = new BufferedReader(new FileReader(file))) {

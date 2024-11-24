@@ -27,7 +27,7 @@ public class CreateFolders extends SwingWorker<String, String> {
 
 		File file = new File(rootPath + "\\0WADS");
 		file.mkdir();
-		file = new File(rootPath + "\\0PutOptionFilesHere");
+		file = new File(rootPath + "\\0PutSizeOptionFilesHere");
 		file.mkdir();
 	}
 }

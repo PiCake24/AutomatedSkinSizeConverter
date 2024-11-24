@@ -44,7 +44,7 @@ public class CreateOptionsFile extends SwingWorker<String, String> {
 	 */
 	public static void writeFile(File file) {
 		try (FileWriter f = new FileWriter(file)) {
-			f.write("Root Path: \nLeague Path: \n#Everything that starts with a # will be ignored. Add The champion names and their numbers of skins in the lines below this line(separated by a space). One champion per line\n#Ahri 61");
+			f.write("Root Path: \nLeague Path: \n#Everything that starts with a # will be ignored. Add The champion names and their numbers of skins in the lines below this line(separated by a space). One champion per line\n#ahri 61");
 			Gui.updateLog("File Overwritten");
 		} catch (IOException e) {
 			Gui.updateLog("Could not edit file");

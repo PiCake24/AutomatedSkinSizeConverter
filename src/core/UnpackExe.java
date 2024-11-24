@@ -1,7 +1,6 @@
 package core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,18 +23,23 @@ public class UnpackExe {
 	 */
 	static boolean unpackRitobin() throws IOException {
 		unpackHashes();
-		String tempDir = System.getProperty(TMPDIR);
+		String tempDir = System.getProperty("java.io.tmpdir");
 		unpackedRitobin = Paths.get(tempDir, "extractedRitobin.exe");
-		try (InputStream in = new FileInputStream("./resources/ritobin_cli.exe");
+
+		try (InputStream in = AutomationMain.class.getResourceAsStream("/ritobin_cli.exe");
 				OutputStream out = Files.newOutputStream(unpackedRitobin)) {
+			if (in == null) {
+				throw new IOException("Resource not found: /ritobin_cli.exe");
+			}
+
 			byte[] buffer = new byte[1024];
 			int bytesRead;
 			while ((bytesRead = in.read(buffer)) != -1) {
 				out.write(buffer, 0, bytesRead);
 			}
 		}
-		return unpackedRitobin.toFile().setExecutable(true);
 
+		return unpackedRitobin.toFile().setExecutable(true);
 	}
 
 	/**
@@ -56,23 +60,20 @@ public class UnpackExe {
 	 * @throws IOException
 	 */
 	private static void unpackHashes() throws IOException {
-		String tempDir = System.getProperty(TMPDIR);
+		String tempDir = System.getProperty("java.io.tmpdir");
 		unpackedFolder = Paths.get(tempDir, "hashes");
-		File resourceFolder = new File("./resources/hashes");
 
-		if (!resourceFolder.isDirectory()) {
-			throw new IOException("Resource folder not found: " + resourceFolder.getAbsolutePath());
-		}
-
-		// Create the target folder in the temp directory
 		Files.createDirectories(unpackedFolder);
 
-		// Copy all files from the resource folder to the temp directory
-		File[] files = resourceFolder.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				Path targetFile = unpackedFolder.resolve(file.getName());
-				Files.copy(file.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+		String[] hashFiles = { "hashes.binentries.txt", "hashes.binfields.txt", "hashes.binhashes.txt",
+				"hashes.bintypes.txt", "hashes.game.txt", "hashes.lcu.txt" };
+		for (String fileName : hashFiles) {
+			try (InputStream in = AutomationMain.class.getResourceAsStream("/hashes/" + fileName)) {
+				if (in == null) {
+					throw new IOException("Resource not found: /hashes/" + fileName);
+				}
+				Path targetFile = unpackedFolder.resolve(fileName);
+				Files.copy(in, targetFile, StandardCopyOption.REPLACE_EXISTING);
 			}
 		}
 	}
@@ -105,8 +106,11 @@ public class UnpackExe {
 	static boolean unpackCDTBTranslator() throws IOException {
 		String tempDir = System.getProperty(TMPDIR);
 		unpackedCDTBTranslator = Paths.get(tempDir, "extractedCDTBTranslator.exe");
-		try (InputStream in = new FileInputStream("resources/CDTBTranslator.exe");
+		try (InputStream in = UnpackExe.class.getResourceAsStream("/CDTBTranslator.exe");
 				OutputStream out = Files.newOutputStream(unpackedCDTBTranslator)) {
+			if (in == null) {
+				throw new IOException("Resource not found: /CDTBTanslator");
+			}
 			byte[] buffer = new byte[1024];
 			int bytesRead;
 			while ((bytesRead = in.read(buffer)) != -1) {
