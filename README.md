@@ -43,6 +43,8 @@ Step 3: Add the size Options files into the 0PutOptionFilesHere folder.
 
 Step 4: Click on Convert chosen champion and wait for the program to finish
 
+If you check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+
 Step 5: Now just import the wad folders into cslol
 
 ## Size Options
