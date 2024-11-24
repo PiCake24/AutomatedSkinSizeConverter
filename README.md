@@ -41,11 +41,11 @@ This will convert all skins until skin 61.
 
 Step 2: Save the Options.txt file
 
-Step 3: Add the size Options files into the 0PutOptionFilesHere folder.
+Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see below how to create them).
 
 Step 4: Click on Convert chosen champion and wait for the program to finish
 
-If you check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+Check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
 Step 5: Now just import the wad folders into cslol
 
@@ -57,8 +57,9 @@ To do that you have to create a file named after the champion. E.g.
 
 `ahri.txt`
 
-Then the first line should contain the champion, followed by a colon, followed by the default size.\\
-Int he lines below that you should put: The skin number, then a colon, the the size for that skin. The skin numbers should be sorted.  An Example:
+Then the first line should contain the champion, followed by a colon, followed by the default size.
+
+In the lines below that you should put: The skin number, then a colon, the the size for that skin. The skin numbers should be sorted.  An Example:
 
 ```
 Ahri: 4
