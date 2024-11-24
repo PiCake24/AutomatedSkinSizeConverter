@@ -6,8 +6,10 @@ This program allows the user to change the size of league of legends skins in gr
 
 [You need to download java.](https://www.oracle.com/java/technologies/downloads)
 
-While my program doesn't directly need it I still recommend using [cslol]() to 
+While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) to 
 actually use the mods.
+
+You also should create a folder, where every mod should be saved to.
 
 ## How to set up the program
 
