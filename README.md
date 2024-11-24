@@ -17,9 +17,13 @@ Step 2: Click on Create Options File. This creates the File which the program ne
 
 Step 3: Open the Options.txt File the program created in the same folder where the program is located.
 
-Step 4: Add behind Root Path: the Path to the folder, where the mods should be put in. You have to create the folder yourself.
+Step 4: Insert the path to the folder where the mods should be put under "root path" (you will have to create this folder yourself). E.g.:
 
-Step 5: Add behind League Path: the Path to the League of Legends Games Folder, where the League Of Legends.exe is located. (It should end something like Riot Games\League of Legends\Game)
+`C:\Users\Yanni\Desktop\MassConverter`
+
+Step 5: Insert the path to the folder where the League Of Legends.exe is located under "League path" (It should end something like Riot Games\League of Legends\Game). E.g.:
+
+`C:\Riot Games\League of Legends\Game`
 
 Step 6:Save the Options.txt file
 
@@ -51,15 +55,17 @@ Step 5: Now just import the wad folders into cslol
 
 ## Size Options
 
-The program allows the user to set a default size (A size that gets applied to all skins) and also different sizes for each skin.
+The program allows the user to set a default size (A size that gets applied to all skins) and also a different size for each skin.
 
-To do that you have to create a file named after the champion. E.g.
+To do that you have to create a file in the 0PutSizeOptionsHere folder named after the champion. E.g.
 
 `ahri.txt`
 
 Then the first line should contain the champion, followed by a colon, followed by the default size.
 
-In the lines below that you should put: The skin number, then a colon, the the size for that skin. The skin numbers should be sorted.  An Example:
+In the lines below that you should put: The skin number, then a colon, the the size for that skin. The skin numbers should be sorted. 
+
+An Example:
 
 ```
 Ahri: 4
