@@ -9,6 +9,8 @@ This program allows the user to change the size of league of legends skins in gr
 While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) to 
 actually use the mods.
 
+You can download the [latest release from the "Releases" section](https://github.com/PiCake24/AutomatedSkinSizeConverter/releases/tag/v1.2.0).
+
 ## How to set up the program
 
 Step 1: run the .exe
