@@ -57,7 +57,7 @@ Step 6: Now just import the wad folders into cslol
 
 The program allows the user to set a default size (A size that gets applied to all skins) and also a different size for each skin.
 
-If you want to set different sizes you have to create a file in the 0PutSizeOptionsHere folder named after the champion. E.g.
+If you want to set different sizes for each skin you have to create a file in the 0PutSizeOptionsHere folder named after the champion. E.g.
 
 `ahri.txt`
 
