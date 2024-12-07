@@ -75,7 +75,7 @@ public class WriteIntoPy {
 	 */
 	public static void prepWriteLuxLegendaryIntoPy(String rootPath) throws IOException {
 		Map<String, Double> map = new HashMap<>();
-		File file = new File(rootPath + "\\0PutOptionFilesHere\\luxlegendary.txt");
+		File file = new File(rootPath + "\\0PutSizeOptionFilesHere\\luxlegendary.txt");
 		if (file.exists()) {
 			Gui.updateLog("Size options for Lux legendary found");
 			try (BufferedReader read = new BufferedReader(new FileReader(file))) {
