@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,9 +23,10 @@ import javax.swing.WindowConstants;
 public class Gui {
 	static JPanel logPanel;
 	static JScrollPane log;
-	static JButton createOptions;
-	static JButton convertChosenSkins;
-	static JButton createFolders;
+	static JButton createOptionsButton;
+	static JButton openOptionsButton;
+	static JButton createFoldersButton;
+	static JButton convertChosenSkinsButton;
 	static JLabel intLabel;
 	static JCheckBox selfUnpackCheckBox;
 
@@ -48,41 +50,57 @@ public class Gui {
 
 		intLabel = new JLabel();
 
-		createOptions = new JButton("Create Options File");
-		createOptions.addActionListener(new ActionListener() {
+		createOptionsButton = new JButton("Create Options File");
+		createOptionsButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				createO = new CreateOptionsFile();
-				createOptions.setEnabled(false);
-				convertChosenSkins.setEnabled(false);
-				createFolders.setEnabled(false);
+				createOptionsButton.setEnabled(false);
+				convertChosenSkinsButton.setEnabled(false);
+				createFoldersButton.setEnabled(false);
+				openOptionsButton.setEnabled(false);
 				createO.execute();
 
 			}
 		});
 
-		createFolders = new JButton("Create Folders");
-		createFolders.addActionListener(new ActionListener() {
+		openOptionsButton = new JButton("Open Options file");
+		openOptionsButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Desktop.getDesktop().edit(new File("Options.txt"));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		createFoldersButton = new JButton("Create Folders");
+		createFoldersButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				createF = new CreateFolders();
-				createOptions.setEnabled(false);
-				convertChosenSkins.setEnabled(false);
-				createFolders.setEnabled(false);
+				createOptionsButton.setEnabled(false);
+				convertChosenSkinsButton.setEnabled(false);
+				createFoldersButton.setEnabled(false);
+				openOptionsButton.setEnabled(false);
 				createF.execute();
 			}
 		});
-		convertChosenSkins = new JButton("Convert chosen champions");
-		convertChosenSkins.addActionListener(new ActionListener() {
+		convertChosenSkinsButton = new JButton("Convert chosen champions");
+		convertChosenSkinsButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				bgConv = new BackgroundConverting();
-				createOptions.setEnabled(false);
-				convertChosenSkins.setEnabled(false);
-				createFolders.setEnabled(false);
+				createOptionsButton.setEnabled(false);
+				convertChosenSkinsButton.setEnabled(false);
+				createFoldersButton.setEnabled(false);
+				openOptionsButton.setEnabled(false);
 				bgConv.execute();
 			}
 		});
@@ -96,9 +114,10 @@ public class Gui {
 
 		selfUnpackCheckBox = new JCheckBox("Enable self unpack");
 
-		p2.add(createOptions);
-		p2.add(createFolders);
-		p2.add(convertChosenSkins);
+		p2.add(createOptionsButton);
+		p2.add(openOptionsButton);
+		p2.add(createFoldersButton);
+		p2.add(convertChosenSkinsButton);
 		p3.add(log);
 		p4.add(intLabel);
 		p4.add(selfUnpackCheckBox);
@@ -163,9 +182,10 @@ public class Gui {
 	 * Reenables all buttons
 	 */
 	public static void enableButtons() {
-		createFolders.setEnabled(true);
-		convertChosenSkins.setEnabled(true);
-		createOptions.setEnabled(true);
+		createFoldersButton.setEnabled(true);
+		convertChosenSkinsButton.setEnabled(true);
+		createOptionsButton.setEnabled(true);
+		openOptionsButton.setEnabled(true);
 	}
 
 	/**
