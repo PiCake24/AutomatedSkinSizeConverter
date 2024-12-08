@@ -40,10 +40,10 @@ public class WriteIntoPy {
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			Gui.updateLog("Writing into " + champion + " " + skinNumber + " with size " + scale);
 			List<String> list = new ArrayList<>();
-			String b;
-			while ((b = in.readLine()) != null) {
-				list.add(b);
-				if (b.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
+			String line;
+			while ((line = in.readLine()) != null) {
+				list.add(line);
+				if (line.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
 					break;
 				}
 			}
@@ -52,11 +52,11 @@ public class WriteIntoPy {
 			list.add(in.readLine());
 
 			list.add("\t \t \tskinScale: f32 = " + scale);
-			while ((b = in.readLine()) != null) {
-				if (b.contains("skinScale")) {
+			while ((line = in.readLine()) != null) {
+				if (line.contains("skinScale")) {
 					continue;
 				}
-				list.add(b);
+				list.add(line);
 			}
 			Gui.updateLog(champion + " " + skinNumber + " overwritten");
 
@@ -168,13 +168,13 @@ public class WriteIntoPy {
 		File file = new File(rootPath + "\\0WADS\\data\\characters\\lux\\skins\\skin7.py");
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			List<String> list = new ArrayList<>();
-			String b;
+			String line;
 			for (int i = 0; i < 11; i++) {
 				Gui.updateLog("Writing into Lux " + order.get(i) + " with size " + map.get(order.get(i)));
-				while ((b = in.readLine()) != null) {
+				while ((line = in.readLine()) != null) {
 
-					list.add(b);
-					if (b.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
+					list.add(line);
+					if (line.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
 						break;
 					}
 				}
@@ -182,15 +182,15 @@ public class WriteIntoPy {
 				list.add(in.readLine());
 				list.add(in.readLine());
 				list.add("\t \t \tskinScale: f32 = " + map.get(order.get(i)));
-				b = in.readLine();
-				if (!b.contains("skinScale")) {
-					list.add(b);
+				line = in.readLine();
+				if (!line.contains("skinScale")) {
+					list.add(line);
 				}
 
 				Gui.updateLog("Lux " + order.get(i) + " overwritten");
 			}
-			while ((b = in.readLine()) != null) {
-				list.add(b);
+			while ((line = in.readLine()) != null) {
+				list.add(line);
 			}
 			String a = String.join("\n", list);
 			try (Writer w = new BufferedWriter(new FileWriter(file))) {

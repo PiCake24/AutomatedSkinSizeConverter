@@ -1,5 +1,6 @@
 package core;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +18,7 @@ public class CDTBExecution {
 
 		ProcessBuilder pb = new ProcessBuilder(pythonScript, "download_hashes");
 		Process process = pb.start();
-		return printProcessOutput(process);
+		return checkprocess(process);
 	}
 
 	/**
@@ -55,25 +56,37 @@ public class CDTBExecution {
 	 */
 	private static boolean extractFile(String champion, String leaguePath, String rootPath)
 			throws IOException, InterruptedException {
+
 		String pythonScript = UnpackExe.getUnpackedCDTBTranslator().toString();
 		String inputPath = leaguePath + "\\" + champion + ".wad.client";
 		String outputPath = rootPath + "\\0WADS\\";
 		String pattern = "*data*skins/*";
-		ProcessBuilder pb2 = new ProcessBuilder(pythonScript, "unpack_file", inputPath, outputPath, pattern);
-		Process process2 = pb2.start();
-		return printProcessOutput(process2);
+		if (new File(inputPath).exists()) {
+			ProcessBuilder pb2 = new ProcessBuilder(pythonScript, "unpack_file", inputPath, outputPath, pattern);
+
+			Process process2 = pb2.start();
+			return checkprocess(process2);
+		} else {
+			if (champion.equals("")) {
+				Gui.updateLog("Chapion could not be found, continueing anyway");
+				return true;
+			}
+			Gui.updateLog("Championfile does not exist, trying to find parent file: "
+					+ champion.substring(0, champion.length() - 1));
+			return extractFile(champion.substring(0, champion.length() - 1), leaguePath, rootPath);
+		}
+
 	}
 
 	/**
-	 * Prints the process output (exitcode) and checks if the program ran
-	 * successfully
+	 * Checks if the program ran successfully
 	 * 
 	 * @param process
 	 * @return
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private static boolean printProcessOutput(Process process) throws InterruptedException {
+	private static boolean checkprocess(Process process) throws InterruptedException {
 		int exitCode = process.waitFor();
 		return exitCode == 0;
 	}
