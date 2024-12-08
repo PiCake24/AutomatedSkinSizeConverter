@@ -1,8 +1,6 @@
 package core;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +35,7 @@ public class CDTBExecution {
 		Set<String> set = map.keySet();
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
+			Gui.updateLog("Downloading " + champion);
 			if (!extractFile(champion, leaguePath, rootPath)) {
 				return false;
 			}
@@ -74,12 +73,7 @@ public class CDTBExecution {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	private static boolean printProcessOutput(Process process) throws IOException, InterruptedException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		String line;
-		while ((line = reader.readLine()) != null) {
-			Gui.updateLog(line);
-		}
+	private static boolean printProcessOutput(Process process) throws InterruptedException {
 		int exitCode = process.waitFor();
 		return exitCode == 0;
 	}

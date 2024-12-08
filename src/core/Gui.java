@@ -26,6 +26,7 @@ public class Gui {
 	static JButton createOptionsButton;
 	static JButton openOptionsButton;
 	static JButton createFoldersButton;
+	static JButton clearLog;
 	static JButton convertChosenSkinsButton;
 	static JLabel intLabel;
 	static JCheckBox selfUnpackCheckBox;
@@ -60,6 +61,7 @@ public class Gui {
 				convertChosenSkinsButton.setEnabled(false);
 				createFoldersButton.setEnabled(false);
 				openOptionsButton.setEnabled(false);
+				clearLog.setEnabled(false);
 				createO.execute();
 
 			}
@@ -88,9 +90,19 @@ public class Gui {
 				convertChosenSkinsButton.setEnabled(false);
 				createFoldersButton.setEnabled(false);
 				openOptionsButton.setEnabled(false);
+				clearLog.setEnabled(false);
 				createF.execute();
 			}
 		});
+		clearLog = new JButton("Clear Log");
+		clearLog.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				clearLog();
+			}
+		});
+
 		convertChosenSkinsButton = new JButton("Convert chosen champions");
 		convertChosenSkinsButton.addActionListener(new ActionListener() {
 
@@ -101,6 +113,7 @@ public class Gui {
 				convertChosenSkinsButton.setEnabled(false);
 				createFoldersButton.setEnabled(false);
 				openOptionsButton.setEnabled(false);
+				clearLog.setEnabled(false);
 				bgConv.execute();
 			}
 		});
@@ -117,6 +130,7 @@ public class Gui {
 		p2.add(createOptionsButton);
 		p2.add(openOptionsButton);
 		p2.add(createFoldersButton);
+		p2.add(clearLog);
 		p2.add(convertChosenSkinsButton);
 		p3.add(log);
 		p4.add(intLabel);
@@ -186,6 +200,7 @@ public class Gui {
 		convertChosenSkinsButton.setEnabled(true);
 		createOptionsButton.setEnabled(true);
 		openOptionsButton.setEnabled(true);
+		clearLog.setEnabled(true);
 	}
 
 	/**
@@ -195,6 +210,14 @@ public class Gui {
 	 */
 	public static boolean getCheckBoxBool() {
 		return selfUnpackCheckBox.getSelectedObjects() != null;
+	}
+
+	private static void clearLog() {
+		if (logPanel != null) {
+			logPanel.removeAll();
+			logPanel.revalidate();
+			logPanel.repaint();
+		}
 	}
 
 	private Gui() {

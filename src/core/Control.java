@@ -14,6 +14,7 @@ public class Control {
 	private static final String OPTIONS = "Options.txt";
 	private static final String CHARACTERPATH = "\\0WADS\\data\\characters\\";
 	private static final String SKINPATH = "\\skins\\skin";
+	private static final String QUEUINGUP = "Queuing up: ";
 
 	/**
 	 * The main control method
@@ -27,7 +28,7 @@ public class Control {
 		String rootPath = paths[0];
 		String leaguePath = paths[1];
 
-		addChampionsToMap(map, rootPath);
+		addChampionsToMap(map);
 
 		createFolders(map, rootPath);
 
@@ -45,13 +46,14 @@ public class Control {
 			if (!CDTBExecution.downloadHashes()) {
 				throw new IOException();
 			}
-
 			if (!CDTBExecution.extractAllFiles(map, leaguePath, rootPath)) {
 				throw new IOException();
 			}
 
 			UnpackExe.removeCDTBTranslator();
 		}
+
+		getActualNumberOfSkins(map, rootPath);
 
 		translateAndRewriteFiles(map, rootPath);
 
@@ -91,7 +93,7 @@ public class Control {
 	 * @param map
 	 * @param rootPath
 	 */
-	private static void addChampionsToMap(Map<String, Integer> map, String rootPath) throws IOException {
+	private static void addChampionsToMap(Map<String, Integer> map) throws IOException {
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
 			Gui.updateLog("Reading options file");
 			String line;
@@ -106,16 +108,35 @@ public class Control {
 					String[] split = line.split(" ");
 					if (split.length > 1) {
 						map.put(split[0].toLowerCase(), Integer.parseInt(split[1]));
-						Gui.updateLog(
-								"Queuing up: " + split[0] + " with " + (Integer.parseInt(split[1]) + 1) + " skins");
+						Gui.updateLog(QUEUINGUP + split[0] + " with " + (Integer.parseInt(split[1]) + 1) + " skins");
 					} else {
-						int number = getNumberOfSkins(split[0].toLowerCase(), rootPath);
+						int number = -1;
 						map.put(split[0].toLowerCase(), number);
-						Gui.updateLog("Queuing up: " + split[0] + " with " + (number + 1) + " skins");
+						Gui.updateLog(QUEUINGUP + split[0] + " with all skins");
 					}
 				}
 
 			}
+		}
+	}
+
+	/**
+	 * returns the number of skins for all champions that have their skin number not
+	 * defined in the Options.txt file
+	 * 
+	 * @param map
+	 * @param rootPath
+	 */
+	private static void getActualNumberOfSkins(Map<String, Integer> map, String rootPath) {
+		Set<String> set = map.keySet();
+		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
+			String champion = (String) set.toArray()[championNumber];
+			if (map.get(champion) < 0) {
+				int number = getNumberOfSkins(champion, rootPath);
+				map.put(champion, number);
+				Gui.updateLog(QUEUINGUP + champion + " with " + (number + 1) + " skins");
+			}
+
 		}
 	}
 
