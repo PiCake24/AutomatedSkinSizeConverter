@@ -30,6 +30,7 @@ public class Gui {
 	static JButton convertChosenSkinsButton;
 	static JLabel intLabel;
 	static JCheckBox selfUnpackCheckBox;
+	static JCheckBox logCheckBox;
 
 	static CreateOptionsFile createO = new CreateOptionsFile();
 	static BackgroundConverting bgConv = new BackgroundConverting();
@@ -125,6 +126,8 @@ public class Gui {
 		log.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		log.setPreferredSize(new Dimension(400, 200));
 
+		logCheckBox = new JCheckBox("Create log file");
+
 		selfUnpackCheckBox = new JCheckBox("Enable self unpack");
 
 		p2.add(createOptionsButton);
@@ -134,6 +137,7 @@ public class Gui {
 		p2.add(convertChosenSkinsButton);
 		p3.add(log);
 		p4.add(intLabel);
+		p4.add(logCheckBox);
 		p4.add(selfUnpackCheckBox);
 		mainPanel.add(p0);
 		mainPanel.add(p1);
@@ -208,10 +212,22 @@ public class Gui {
 	 * 
 	 * @return
 	 */
-	public static boolean getCheckBoxBool() {
+	public static boolean getSelfUnpackCheckBoxBool() {
 		return selfUnpackCheckBox.getSelectedObjects() != null;
 	}
 
+	/**
+	 * Returns if the logCheckBox is checked
+	 * 
+	 * @return
+	 */
+	public static boolean getLogCheckBox() {
+		return logCheckBox.getSelectedObjects() != null;
+	}
+
+	/**
+	 * clears the log
+	 */
 	private static void clearLog() {
 		if (logPanel != null) {
 			logPanel.removeAll();

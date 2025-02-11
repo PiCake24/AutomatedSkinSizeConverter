@@ -42,22 +42,23 @@ public class WriteIntoPy {
 			List<String> list = new ArrayList<>();
 			String line;
 			while ((line = in.readLine()) != null) {
-				list.add(line);
-				if (line.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
-					break;
+				if (line.trim().contains("skinScale")) {
+					list.add("\t \t \tskinScale: f32 = " + scale);
+				} else {
+					list.add(line);
 				}
+//				list.add(line);
+//				if (line.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
+//					break;
+//				}
 			}
-			list.add(in.readLine());
-			list.add(in.readLine());
-			list.add(in.readLine());
-
-			list.add("\t \t \tskinScale: f32 = " + scale);
-			while ((line = in.readLine()) != null) {
-				if (line.contains("skinScale")) {
-					continue;
-				}
-				list.add(line);
-			}
+//			for (int i = 0; i < 6; i++) {
+//				line = in.readLine();
+//
+//			}
+//			while ((line = in.readLine()) != null) {
+//				list.add(line);
+//			}
 			Gui.updateLog(champion + " " + skinNumber + " overwritten");
 
 			String outputString = String.join("\n", list);

@@ -37,7 +37,7 @@ public class Control {
 			throw new IOException();
 		}
 
-		if (Gui.getCheckBoxBool()) {
+		if (Gui.getSelfUnpackCheckBoxBool()) {
 			Gui.updateLog("Unpacking CDTB");
 			if (!UnpackExe.unpackCDTBTranslator()) {
 				throw new IOException();
@@ -202,10 +202,14 @@ public class Control {
 
 			convertToPython(map, rootPath, champion);
 			Thread.sleep(3000);
-
+		}
+		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
+			String champion = (String) set.toArray()[championNumber];
 			rewriteFile(map, rootPath, champion);
 			Thread.sleep(1000);
-
+		}
+		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
+			String champion = (String) set.toArray()[championNumber];
 			convertToWad(map, rootPath, champion);
 
 			LegendarySkins.checkForLegendary(map, champion, rootPath);

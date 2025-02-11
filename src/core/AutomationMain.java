@@ -6,4 +6,6 @@ public class AutomationMain {
 	public static void main(String[] args) {
 		Gui.generateGui(CURRENT_VERSION);
 	}
+	// TODO logs
+	// TODO integrate cslol
 }
