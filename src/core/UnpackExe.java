@@ -95,7 +95,7 @@ public class UnpackExe {
 				for (File file : files) {
 					Path path = file.toPath();
 					Files.delete(path);
-					Logger.getInstance().log("Delted Hash:" + path);
+					Logger.getInstance().log("Deleted Hash:" + path);
 				}
 			}
 			Files.delete(unpackedFolder);
