@@ -7,6 +7,4 @@ public class AutomationMain {
 		Gui.generateGui(CURRENT_VERSION);
 	}
 	// TODO integrate cslol
-	// TODO LOGS
-	// ritobin hashes? brauch ich die überhaupt
 }
