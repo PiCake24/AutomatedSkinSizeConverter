@@ -69,7 +69,7 @@ public class CDTBExecution {
 			return checkprocess(process2);
 		} else {
 			if (champion.equals("")) {
-				Gui.updateLog("Champion could not be found, continueing anyway");
+				Gui.updateLog("Champion could not be found, continueing with next champion");
 				return true;
 			}
 			Gui.updateLog("Championfile does not exist, trying to find parent file: "
@@ -89,9 +89,9 @@ public class CDTBExecution {
 	 */
 	private static boolean checkprocess(Process process) throws IOException, InterruptedException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		while (reader.readLine() != null) {
-			// there is just nothing to do with this, but I need it, else the process
-			// sometimes doesnt terminate
+		String line;
+		while ((line = reader.readLine()) != null) {
+			Logger.getInstance().log(line);
 		}
 		int exitCode = process.waitFor();
 		return exitCode == 0;

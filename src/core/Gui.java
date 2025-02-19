@@ -189,6 +189,7 @@ public class Gui {
 	 * @param text
 	 */
 	public static void updateLog(String text) {
+		Logger.getInstance().log(text);
 		if (logPanel != null) {
 			logPanel.add(new JLabel(text), 0);
 			logPanel.revalidate();

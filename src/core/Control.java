@@ -84,6 +84,8 @@ public class Control {
 		}
 		Gui.updateLog("Root Path:" + paths[0]);
 		Gui.updateLog("League Path: " + paths[1]);
+		Logger.getInstance().log(paths[0]);
+		Logger.getInstance().log(paths[1]);
 		return paths;
 	}
 
@@ -201,13 +203,13 @@ public class Control {
 			String champion = (String) set.toArray()[championNumber];
 
 			convertToPython(map, rootPath, champion);
-			Thread.sleep(3000);
 		}
+		Thread.sleep(5000);
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
 			rewriteFile(map, rootPath, champion);
-			Thread.sleep(1000);
 		}
+		Thread.sleep(5000);
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
 			convertToWad(map, rootPath, champion);

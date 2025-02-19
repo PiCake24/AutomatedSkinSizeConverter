@@ -29,6 +29,7 @@ public class UnpackExe {
 		try (InputStream in = AutomationMain.class.getResourceAsStream("/ritobin_cli.exe");
 				OutputStream out = Files.newOutputStream(unpackedRitobin)) {
 			if (in == null) {
+				Logger.getInstance().log("Resource not found: /ritobin_cli.exe");
 				throw new IOException("Resource not found: /ritobin_cli.exe");
 			}
 
@@ -38,7 +39,7 @@ public class UnpackExe {
 				out.write(buffer, 0, bytesRead);
 			}
 		}
-
+		Logger.getInstance().log("Ritobin unpacked under:" + unpackedRitobin.toString());
 		return unpackedRitobin.toFile().setExecutable(true);
 	}
 
@@ -51,6 +52,7 @@ public class UnpackExe {
 		deleteHashes();
 		if (unpackedRitobin != null) {
 			Files.deleteIfExists(unpackedRitobin);
+			Logger.getInstance().log("Ritobin deleted");
 		}
 	}
 
@@ -70,10 +72,12 @@ public class UnpackExe {
 		for (String fileName : hashFiles) {
 			try (InputStream in = AutomationMain.class.getResourceAsStream("/hashes/" + fileName)) {
 				if (in == null) {
+					Logger.getInstance().log("Resource not found: /hashes/" + fileName);
 					throw new IOException("Resource not found: /hashes/" + fileName);
 				}
 				Path targetFile = unpackedFolder.resolve(fileName);
 				Files.copy(in, targetFile, StandardCopyOption.REPLACE_EXISTING);
+				Logger.getInstance().log("Hash unpacked to: " + targetFile);
 			}
 		}
 	}
@@ -91,9 +95,11 @@ public class UnpackExe {
 				for (File file : files) {
 					Path path = file.toPath();
 					Files.delete(path);
+					Logger.getInstance().log("Delted Hash:" + path);
 				}
 			}
 			Files.delete(unpackedFolder);
+			Logger.getInstance().log("Deleted Folder:" + unpackedFolder);
 		}
 	}
 
@@ -109,6 +115,7 @@ public class UnpackExe {
 		try (InputStream in = UnpackExe.class.getResourceAsStream("/CDTBTranslator.exe");
 				OutputStream out = Files.newOutputStream(unpackedCDTBTranslator)) {
 			if (in == null) {
+				Logger.getInstance().log("Resource not found: /CDTBTanslator");
 				throw new IOException("Resource not found: /CDTBTanslator");
 			}
 			byte[] buffer = new byte[1024];
@@ -117,6 +124,7 @@ public class UnpackExe {
 				out.write(buffer, 0, bytesRead);
 			}
 		}
+		Logger.getInstance().log("CDTBTranslator unpacked under:" + unpackedCDTBTranslator.toString());
 		return unpackedCDTBTranslator.toFile().setExecutable(true);
 	}
 
@@ -128,6 +136,7 @@ public class UnpackExe {
 	static void removeCDTBTranslator() throws IOException {
 		if (unpackedCDTBTranslator != null) {
 			Files.deleteIfExists(unpackedCDTBTranslator);
+			Logger.getInstance().log("CDTBTranslator deleted");
 		}
 	}
 

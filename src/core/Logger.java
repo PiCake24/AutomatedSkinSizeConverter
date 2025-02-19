@@ -49,6 +49,15 @@ public class Logger {
 				// nothing to do if this fails
 			}
 		}
+	}
 
+	public void endLog() {
+		if (doLog) {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				// nothing to do if this fails
+			}
+		}
 	}
 }
