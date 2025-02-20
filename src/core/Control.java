@@ -59,6 +59,11 @@ public class Control {
 
 		UnpackExe.removeRitobin();
 
+		// if check for thingy TODO
+
+		CslolIntegrator.createMods(map, "D:\\Programs verknuepfng\\Programs\\cslol-manager\\installed"); // TODO
+																											// unhardcode
+
 		Gui.updateLog("Done");
 	}
 

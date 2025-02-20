@@ -14,6 +14,7 @@ public class UnpackExe {
 	private static Path unpackedRitobin;
 	private static Path unpackedCDTBTranslator;
 	private static Path unpackedFolder;
+	private static Path unpackedWadMake;
 
 	/**
 	 * unpacks Ritobin to the tmp folder
@@ -140,12 +141,27 @@ public class UnpackExe {
 		}
 	}
 
+	static void unpackWadMake() {
+		// TODO
+	}
+
+	static void removeWadMake() throws IOException {// TODO call this function
+		if (unpackedWadMake != null) {
+			Files.deleteIfExists(unpackedWadMake);
+			Logger.getInstance().log("CDTBTranslator deleted");
+		}
+	}
+
 	static Path getUnpackedRitobin() {
 		return unpackedRitobin;
 	}
 
 	static Path getUnpackedCDTBTranslator() {
 		return unpackedCDTBTranslator;
+	}
+
+	static Path getUnpackedWadMake() {
+		return unpackedWadMake;
 	}
 
 	private UnpackExe() {
