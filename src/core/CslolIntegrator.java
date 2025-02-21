@@ -13,10 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class CslolIntegrator {
-	// TODO options file check und gegebenfalls anpassen
-	// TODO mit knopf aktivieren
-	// TODO logging and messages
-	// todo: doc
+	private static final String GIANT = "\\giant ";
 
 	/**
 	 * Creates mods in cslol
@@ -38,13 +35,13 @@ public class CslolIntegrator {
 			createWad(champion, rootPath);
 			createFolders(champion, csLolPath);
 		}
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
 			createMeta(champion, csLolPath);
 			movewad(champion, rootPath, csLolPath);
 		}
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 		UnpackExe.removeWadMake();
 	}
 
@@ -56,9 +53,9 @@ public class CslolIntegrator {
 	 */
 	private static void createFolders(String champion, String csLolPath) {
 		Gui.updateLog("Creating cslol folders for " + champion);
-		File file = new File(csLolPath + "\\giant " + champion + "\\META");
+		File file = new File(csLolPath + GIANT + champion + "\\META");
 		file.mkdirs();
-		file = new File(csLolPath + "\\giant " + champion + "\\WAD");
+		file = new File(csLolPath + GIANT + champion + "\\WAD");
 		file.mkdir();
 	}
 
@@ -88,7 +85,7 @@ public class CslolIntegrator {
 	private static void movewad(String champion, String rootPath, String csLolPath) throws IOException {
 		Gui.updateLog("Moving " + champion + " wad");
 		Path sourcePath = Path.of(rootPath + "\\" + champion + ".wad.client.wad.client");
-		Path targetPath = Path.of(csLolPath + "\\giant " + champion + "\\WAD\\" + champion + ".wad.client");
+		Path targetPath = Path.of(csLolPath + GIANT + champion + "\\WAD\\" + champion + ".wad.client");
 		Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
 	}
 
@@ -101,7 +98,7 @@ public class CslolIntegrator {
 	 */
 	private static void createMeta(String champion, String cslolPath) throws IOException {
 		Gui.updateLog("Creating META files");
-		File file = new File(cslolPath + "\\giant " + champion + "\\META\\info.json");
+		File file = new File(cslolPath + GIANT + champion + "\\META\\info.json");
 		if (file.createNewFile()) {
 			String s = "{\r\n" + "    \"Author\": \"AutomatedSkinSizeConverter\",\r\n"
 					+ "    \"Description\": \"\",\r\n" + "    \"Heart\": \"\",\r\n" + "    \"Home\": \"\",\r\n"
@@ -110,6 +107,9 @@ public class CslolIntegrator {
 				out.write(s);
 			}
 		}
+	}
+
+	private CslolIntegrator() {
 	}
 
 }
