@@ -24,7 +24,7 @@ public class UnpackExe {
 	 */
 	static boolean unpackRitobin() throws IOException {
 		unpackHashes();
-		String tempDir = System.getProperty("java.io.tmpdir");
+		String tempDir = System.getProperty(TMPDIR);
 		unpackedRitobin = Paths.get(tempDir, "extractedRitobin.exe");
 
 		try (InputStream in = AutomationMain.class.getResourceAsStream("/ritobin_cli.exe");
@@ -63,7 +63,7 @@ public class UnpackExe {
 	 * @throws IOException
 	 */
 	private static void unpackHashes() throws IOException {
-		String tempDir = System.getProperty("java.io.tmpdir");
+		String tempDir = System.getProperty(TMPDIR);
 		unpackedFolder = Paths.get(tempDir, "hashes");
 
 		Files.createDirectories(unpackedFolder);
@@ -141,14 +141,40 @@ public class UnpackExe {
 		}
 	}
 
-	static void unpackWadMake() {
-		// TODO
+	/**
+	 * unpacks WadMake to the tmp folder
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	static boolean unpackWadMake() throws IOException {
+		String tempDir = System.getProperty(TMPDIR);
+		unpackedWadMake = Paths.get(tempDir, "wad-make.exe");
+		try (InputStream in = UnpackExe.class.getResourceAsStream("/wad-make.exe");
+				OutputStream out = Files.newOutputStream(unpackedWadMake)) {
+			if (in == null) {
+				Logger.getInstance().log("Resource not found: /wad-make");
+				throw new IOException("Resource not found: /wad-make");
+			}
+			byte[] buffer = new byte[1024];
+			int bytesRead;
+			while ((bytesRead = in.read(buffer)) != -1) {
+				out.write(buffer, 0, bytesRead);
+			}
+		}
+		Logger.getInstance().log("wad-make unpacked under:" + unpackedWadMake.toString());
+		return unpackedWadMake.toFile().setExecutable(true);
 	}
 
-	static void removeWadMake() throws IOException {// TODO call this function
+	/**
+	 * Deletes WadMake again
+	 * 
+	 * @throws IOException
+	 */
+	static void removeWadMake() throws IOException {
 		if (unpackedWadMake != null) {
 			Files.deleteIfExists(unpackedWadMake);
-			Logger.getInstance().log("CDTBTranslator deleted");
+			Logger.getInstance().log("wad-make deleted");
 		}
 	}
 
