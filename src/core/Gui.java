@@ -59,11 +59,7 @@ public class Gui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				createO = new CreateOptionsFile();
-				createOptionsButton.setEnabled(false);
-				convertChosenSkinsButton.setEnabled(false);
-				createFoldersButton.setEnabled(false);
-				openOptionsButton.setEnabled(false);
-				clearLog.setEnabled(false);
+				disableButtons();
 				createO.execute();
 
 			}
@@ -88,11 +84,7 @@ public class Gui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				createF = new CreateFolders();
-				createOptionsButton.setEnabled(false);
-				convertChosenSkinsButton.setEnabled(false);
-				createFoldersButton.setEnabled(false);
-				openOptionsButton.setEnabled(false);
-				clearLog.setEnabled(false);
+				disableButtons();
 				createF.execute();
 			}
 		});
@@ -111,11 +103,7 @@ public class Gui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				bgConv = new BackgroundConverting();
-				createOptionsButton.setEnabled(false);
-				convertChosenSkinsButton.setEnabled(false);
-				createFoldersButton.setEnabled(false);
-				openOptionsButton.setEnabled(false);
-				clearLog.setEnabled(false);
+				disableButtons();
 				bgConv.execute();
 			}
 		});
@@ -201,6 +189,17 @@ public class Gui {
 		}
 	}
 
+	private static void disableButtons() {
+		createOptionsButton.setEnabled(false);
+		convertChosenSkinsButton.setEnabled(false);
+		createFoldersButton.setEnabled(false);
+		openOptionsButton.setEnabled(false);
+		clearLog.setEnabled(false);
+		importIntoCsLolCheckBox.setEnabled(false);
+		logCheckBox.setEnabled(false);
+		selfUnpackCheckBox.setEnabled(false);
+	}
+
 	/**
 	 * Reenables all buttons
 	 */
@@ -210,6 +209,9 @@ public class Gui {
 		createOptionsButton.setEnabled(true);
 		openOptionsButton.setEnabled(true);
 		clearLog.setEnabled(true);
+		importIntoCsLolCheckBox.setEnabled(true);
+		logCheckBox.setEnabled(true);
+		selfUnpackCheckBox.setEnabled(true);
 	}
 
 	/**
