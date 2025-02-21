@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class Control {
 	 * 
 	 * @throws IOException
 	 * @throws InterruptedException
+	 * @throws URISyntaxException
 	 */
 	static void control() throws IOException, InterruptedException {
 		Map<String, Integer> map = new HashMap<>();
@@ -59,10 +61,10 @@ public class Control {
 
 		UnpackExe.removeRitobin();
 
-		// if check for thingy TODO
+		// if check for checkbox TODO
 
-		CslolIntegrator.createMods(map, "D:\\Programs verknuepfng\\Programs\\cslol-manager\\installed"); // TODO
-																											// unhardcode
+		CslolIntegrator.createCslolMods(map, rootPath, "D:\\Programs verknuepfng\\Programs\\cslol-manager\\installed");
+		// TODO unhardcode
 
 		Gui.updateLog("Done");
 	}
@@ -73,7 +75,8 @@ public class Control {
 	 * @return
 	 * @throws IOException
 	 */
-	static String[] getPaths() throws IOException {
+	static String[] getPaths() throws IOException { // TODO cslolpath, check for validity of values by reading whats
+													// before the :
 		String[] paths = new String[2];
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
 			String s1 = read.readLine();
