@@ -47,18 +47,7 @@ public class WriteIntoPy {
 				} else {
 					list.add(line);
 				}
-//				list.add(line);
-//				if (line.trim().equals("skinMeshProperties: embed = SkinMeshDataProperties {")) {
-//					break;
-//				}
 			}
-//			for (int i = 0; i < 6; i++) {
-//				line = in.readLine();
-//
-//			}
-//			while ((line = in.readLine()) != null) {
-//				list.add(line);
-//			}
 			Gui.updateLog(champion + " " + skinNumber + " overwritten");
 
 			String outputString = String.join("\n", list);
@@ -113,36 +102,16 @@ public class WriteIntoPy {
 	 * @param defaultsize
 	 */
 	static void addMapDefaultSize(Map<String, Double> map, double defaultsize) {
-		if (!map.containsKey(LIGHT)) {
-			map.put(LIGHT, defaultsize);
-		}
-		if (!map.containsKey(FIRE)) {
-			map.put(FIRE, defaultsize);
-		}
-		if (!map.containsKey(WATER)) {
-			map.put(WATER, defaultsize);
-		}
-		if (!map.containsKey(AIR)) {
-			map.put(AIR, defaultsize);
-		}
-		if (!map.containsKey(ICE)) {
-			map.put(ICE, defaultsize);
-		}
-		if (!map.containsKey(DARK)) {
-			map.put(DARK, defaultsize);
-		}
-		if (!map.containsKey(MAGMA)) {
-			map.put(MAGMA, defaultsize);
-		}
-		if (!map.containsKey(NATURE)) {
-			map.put(NATURE, defaultsize);
-		}
-		if (!map.containsKey(MYSTIC)) {
-			map.put(MYSTIC, defaultsize);
-		}
-		if (!map.containsKey(STORM)) {
-			map.put(STORM, defaultsize);
-		}
+		map.computeIfAbsent(LIGHT, key -> defaultsize);
+		map.computeIfAbsent(FIRE, key -> defaultsize);
+		map.computeIfAbsent(WATER, key -> defaultsize);
+		map.computeIfAbsent(AIR, key -> defaultsize);
+		map.computeIfAbsent(ICE, key -> defaultsize);
+		map.computeIfAbsent(DARK, key -> defaultsize);
+		map.computeIfAbsent(MAGMA, key -> defaultsize);
+		map.computeIfAbsent(NATURE, key -> defaultsize);
+		map.computeIfAbsent(MYSTIC, key -> defaultsize);
+		map.computeIfAbsent(STORM, key -> defaultsize);
 	}
 
 	/**
