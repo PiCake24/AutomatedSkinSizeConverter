@@ -30,6 +30,7 @@ public class Gui {
 	static JButton convertChosenSkinsButton;
 	static JLabel intLabel;
 	static JCheckBox selfUnpackCheckBox;
+	static JCheckBox importIntoCsLolCheckBox;
 	static JCheckBox logCheckBox;
 
 	static CreateOptionsFile createO = new CreateOptionsFile();
@@ -128,6 +129,8 @@ public class Gui {
 
 		logCheckBox = new JCheckBox("Create log file");
 
+		importIntoCsLolCheckBox = new JCheckBox("Import mods into cslol");
+
 		selfUnpackCheckBox = new JCheckBox("Enable self unpack");
 
 		p2.add(createOptionsButton);
@@ -138,6 +141,7 @@ public class Gui {
 		p3.add(log);
 		p4.add(intLabel);
 		p4.add(logCheckBox);
+		p4.add(importIntoCsLolCheckBox);
 		p4.add(selfUnpackCheckBox);
 		mainPanel.add(p0);
 		mainPanel.add(p1);
@@ -224,6 +228,15 @@ public class Gui {
 	 */
 	public static boolean getLogCheckBox() {
 		return logCheckBox.getSelectedObjects() != null;
+	}
+
+	/**
+	 * Returns if the importIntoCsLolCheckBox is checked
+	 * 
+	 * @return
+	 */
+	public static boolean getImportIntoCsLolCheckBox() {
+		return importIntoCsLolCheckBox.getSelectedObjects() != null;
 	}
 
 	/**
