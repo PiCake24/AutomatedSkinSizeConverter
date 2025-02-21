@@ -1,12 +1,16 @@
 package core;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,8 +31,12 @@ public class Control {
 	static void control() throws IOException, InterruptedException {
 		Map<String, Integer> map = new HashMap<>();
 		String[] paths = getPaths();
+		if (paths.length == 0) {
+			return;
+		}
 		String rootPath = paths[0];
 		String leaguePath = paths[1];
+		String csLolPath = paths[2];
 
 		addChampionsToMap(map);
 
@@ -61,10 +69,10 @@ public class Control {
 
 		UnpackExe.removeRitobin();
 
-		// if check for checkbox TODO
+		if (Gui.getImportIntoCsLolCheckBox()) {
 
-		CslolIntegrator.createCslolMods(map, rootPath, "D:\\Programs verknuepfng\\Programs\\cslol-manager\\installed");
-		// TODO unhardcode
+			CslolIntegrator.createCslolMods(map, rootPath, csLolPath);
+		}
 
 		Gui.updateLog("Done");
 	}
@@ -75,26 +83,132 @@ public class Control {
 	 * @return
 	 * @throws IOException
 	 */
-	static String[] getPaths() throws IOException { // TODO cslolpath, check for validity of values by reading whats
-													// before the :
+	static String[] getPaths() throws IOException {
 		String[] paths = new String[2];
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
 			String s1 = read.readLine();
 			String s2 = read.readLine();
+			String s3 = read.readLine();
+
 			String[] split1 = s1.split(":");
-			String[] split2 = s2.split(":");
+			if (!split1[0].equals("Root Path")) {
+				Gui.updateLog("No Root Path option in options file. Trying to add it to the file");
+				addRootPath();
+				return new String[0];
+			}
+			if (split1[1].trim().equals("")) {
+				Gui.updateLog("No Root Path entered in options file. Please add a Root Path to the options file");
+				return new String[0];
+			}
+			if (split1.length < 3) {
+				Gui.updateLog("The Root Path is not set correctly");
+				return new String[0];
+			}
 			s1 = split1[1] + ":" + split1[2];
+
+			String[] split2 = s2.split(":");
+			if (!split2[0].equals("League Path")) {
+				Gui.updateLog("No League Path option in options file. Trying to add it to the file");
+				addLeaguePath();
+				return new String[0];
+			}
+			if (split2[1].trim().equals("")) {
+				Gui.updateLog("No League Path entered in options file. Please add a Root Path to the options file");
+				return new String[0];
+			}
+			if (split2.length < 3) {
+				Gui.updateLog("The League Path is not set correctly");
+				return new String[0];
+			}
 			s2 = split2[1] + ":" + split2[2];
+
+			String[] split3 = s3.split(":");
+			if (!split3[0].equals("CsLol Path")) {
+				Gui.updateLog("No CsLol Path option in options file. Trying to add it to the file");
+				addCsLolPath();
+				if (Gui.getImportIntoCsLolCheckBox()) {
+					Gui.updateLog(
+							"Added CsLol Path line to Options file. Please open the file and add a value behind it");
+					return new String[0];
+				} else {
+					Gui.updateLog("Added CsLol Path line to Options file.");
+				}
+			}
+			if (Gui.getImportIntoCsLolCheckBox()) {
+				if (split3[1].trim().equals("")) {
+					Gui.updateLog("No CsLol Path entered in options file. Please add a Root Path to the options file");
+					return new String[0];
+				}
+				if (split3.length < 3) {
+					Gui.updateLog("The CsLol Path is not set correctly");
+					return new String[0];
+				}
+				s3 = split3[1] + ":" + split3[2];
+			}
 			paths = new String[3];
 			paths[0] = s1.trim();
 			paths[1] = s2.trim();
 			paths[1] += "\\DATA\\FINAL\\Champions";
+			paths[2] = s3.trim();
+			paths[2] += "\\installed";
 		}
 		Gui.updateLog("Root Path:" + paths[0]);
 		Gui.updateLog("League Path: " + paths[1]);
-		Logger.getInstance().log(paths[0]);
-		Logger.getInstance().log(paths[1]);
+		if (Gui.getImportIntoCsLolCheckBox()) {
+			Gui.updateLog("CsLol Path:" + paths[2]);
+		}
 		return paths;
+
+	}
+
+	private static void addRootPath() throws IOException {
+		List<String> list = new ArrayList<>();
+		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
+			String line;
+			list.add("Root Path: ");
+			while ((line = in.readLine()) != null) {
+				list.add(line);
+			}
+		}
+		String outputString = String.join("\n", list);
+		try (Writer w = new BufferedWriter(new FileWriter(OPTIONS))) {
+			w.write(outputString);
+		}
+		Gui.updateLog("Added Root Path line to Options file. Please open the file and add a value behind it");
+	}
+
+	private static void addLeaguePath() throws IOException {
+		List<String> list = new ArrayList<>();
+		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
+			String line;
+			list.add(in.readLine());
+			list.add("League Path: ");
+			while ((line = in.readLine()) != null) {
+				list.add(line);
+			}
+		}
+		String outputString = String.join("\n", list);
+		try (Writer w = new BufferedWriter(new FileWriter(OPTIONS))) {
+			w.write(outputString);
+		}
+		Gui.updateLog("Added League Path line to Options file. Please open the file and add a value behind it");
+	}
+
+	private static void addCsLolPath() throws IOException {
+		List<String> list = new ArrayList<>();
+		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
+			String line;
+			list.add(in.readLine());
+			list.add(in.readLine());
+			list.add("CsLol Path: ");
+			while ((line = in.readLine()) != null) {
+				list.add(line);
+			}
+		}
+		String outputString = String.join("\n", list);
+		try (Writer w = new BufferedWriter(new FileWriter(OPTIONS))) {
+			w.write(outputString);
+		}
 	}
 
 	/**
@@ -105,9 +219,9 @@ public class Control {
 	 */
 	private static void addChampionsToMap(Map<String, Integer> map) throws IOException {
 		try (BufferedReader read = new BufferedReader(new FileReader(new File(OPTIONS)))) {
-			Gui.updateLog("Reading options file");
+			Gui.updateLog("Reading champions file");
 			String line;
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < 3; i++) {
 				line = read.readLine();
 				if (line == null) {
 					throw new IOException();
