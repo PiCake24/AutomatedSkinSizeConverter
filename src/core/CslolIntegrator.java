@@ -41,8 +41,8 @@ public class CslolIntegrator {
 			createMeta(champion, csLolPath);
 			movewad(champion, rootPath, csLolPath);
 		}
-		Thread.sleep(3000);
-		UnpackExe.removeWadMake();
+//		Thread.sleep(5000);
+//		UnpackExe.removeWadMake();
 	}
 
 	/**

@@ -35,6 +35,7 @@ public class WriteIntoPy {
 	 * @throws IOException
 	 */
 	public static void writeInto(String champion, int skinNumber, double scale, String rootPath) throws IOException {
+		boolean increasedSize = false;
 		File file = new File(
 				rootPath + "\\0WADS\\data\\characters\\" + champion + "\\skins\\skin" + skinNumber + ".py");
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
@@ -44,7 +45,12 @@ public class WriteIntoPy {
 			while ((line = in.readLine()) != null) {
 				if (line.trim().contains("skinScale")) {
 					list.add("\t \t \tskinScale: f32 = " + scale);
+					increasedSize = true;
 				} else {
+					if (line.contains("selfIllumination") && !increasedSize) {
+						list.add("\t \t \tskinScale: f32 = " + scale);
+						increasedSize = true;
+					}
 					list.add(line);
 				}
 			}
