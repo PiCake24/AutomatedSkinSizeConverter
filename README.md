@@ -27,15 +27,19 @@ Step 5: Insert the path to the folder where the League Of Legends.exe is located
 
 `C:\Riot Games\League of Legends\Game`
 
-Step 6:Save the Options.txt file
+(Optional) Step 6:  Insert the path to the folder where the League Of Legends.exe is located under "CsLol path" (This is only needed if you want the program to import the mods directly into cslol). E.g.:
 
-(Optional) Step 7: Now press Generate Folders to create the needed Folders in the root folder.
+` D:\Programs verknuepfng\Programs\cslol-manager`
+
+Step 7:Save the Options.txt file
+
+(Optional) Step 8: Now press Generate Folders to create the needed Folders in the root folder.
 
 You only need to do this, if you want to set the skins to a different size. The size without using these folders is set to 5.
 
 ## How to use the program
 
-Step 1: Add the champions you want to convert into the Options.txt file in the lines below the #, e.g.
+Step 1: Add the champions you want to convert into the Options.txt file in the lines below path lines, e.g.
 
 `ahri`
 
@@ -49,11 +53,13 @@ Step 2: Save the Options.txt file
 
 Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see below how to create them).
 
-Step 4: In the Pogram check the Enable self unpack folder for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+(Optional) Step 4: In the Pogram check the "Enable self unpack" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
-Step 5: Click on Convert Chosen Champion and wait for the program to finish.
+(Optional) Step 5: In the program check the "Import mods into cslol" checkbox for the program to add the mods as "giant <championname>" into cslol. To see the mods in cslol you have to restart cslol.
 
-Step 6: Now just import the wad folders into cslol
+Step 6: Click on Convert Chosen Champion and wait for the program to finish.
+
+Step 7: Now just import the wad folders into cslol, if you have not checked the "Import mods into cslol" checkbox yourself
 
 ## Size Options
 
