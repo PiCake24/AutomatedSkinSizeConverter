@@ -130,9 +130,8 @@ public class Control {
 					Gui.updateLog(
 							"Added CsLol Path line to Options file. Please open the file and add a value behind it");
 					return new String[0];
-				} else {
-					Gui.updateLog("Added CsLol Path line to Options file.");
 				}
+				Gui.updateLog("Added CsLol Path line to Options file.");
 			}
 			if (Gui.getImportIntoCsLolCheckBox()) {
 				if (split3[1].trim().equals("")) {
@@ -325,6 +324,7 @@ public class Control {
 			String champion = (String) set.toArray()[championNumber];
 
 			convertToPython(map, rootPath, champion);
+			Thread.sleep(200);
 		}
 		Thread.sleep(5000);
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
@@ -354,7 +354,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgBinToPy(champion, skinNumber, rootPath);
-				Thread.sleep(50);
+				Thread.sleep(100);
 			} else {
 				Gui.updateLog(champion + " " + skinNumber + " does not exist");
 			}
@@ -460,7 +460,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgPytoBin(champion, skinNumber, rootPath);
-				Thread.sleep(50);
+				Thread.sleep(100);
 			}
 		}
 	}
