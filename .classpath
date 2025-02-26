@@ -9,5 +9,11 @@
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="lib" path="lib/oshi-core-6.7.0.jar"/>
 	<classpathentry kind="lib" path="lib/oshi-core-6.7.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jna-5.16.0.jar"/>
+	<classpathentry kind="lib" path="lib/jna-5.16.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jna-platform-5.16.0.jar"/>
+	<classpathentry kind="lib" path="lib/jna-platform-5.16.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-2.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-2.0.17-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
