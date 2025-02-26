@@ -7,5 +7,7 @@
 	</classpathentry>
 	<classpathentry excluding="resources/" kind="src" path="src"/>
 	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="lib" path="lib/oshi-core-6.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/oshi-core-6.7.0-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
