@@ -55,7 +55,7 @@ Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see 
 
 (Optional) Step 4: In the Pogram check the "Enable self unpack" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
-(Optional) Step 5: In the program check the "Import mods into cslol" checkbox for the program to add the mods as "giant <championname>" into cslol. To see the mods in cslol you have to restart cslol.
+(Optional) Step 5: In the program check the "Import mods into cslol" checkbox for the program to add the mods as "giant <championname>" into cslol. If you want to use this option I recommend to close cslol while my program is running.
 
 Step 6: Click on Convert Chosen Champion and wait for the program to finish.
 
