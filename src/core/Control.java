@@ -78,7 +78,7 @@ public class Control {
 	}
 
 	/**
-	 * Reads the paths from the options file
+	 * Reads the paths from the options file and checks if they exist
 	 * 
 	 * @return
 	 * @throws IOException
@@ -160,6 +160,11 @@ public class Control {
 
 	}
 
+	/**
+	 * TODO
+	 * 
+	 * @throws IOException
+	 */
 	private static void addRootPath() throws IOException {
 		List<String> list = new ArrayList<>();
 		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
@@ -176,6 +181,11 @@ public class Control {
 		Gui.updateLog("Added Root Path line to Options file. Please open the file and add a value behind it");
 	}
 
+	/**
+	 * TODO
+	 * 
+	 * @throws IOException
+	 */
 	private static void addLeaguePath() throws IOException {
 		List<String> list = new ArrayList<>();
 		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
@@ -193,6 +203,11 @@ public class Control {
 		Gui.updateLog("Added League Path line to Options file. Please open the file and add a value behind it");
 	}
 
+	/**
+	 * TODO
+	 * 
+	 * @throws IOException
+	 */
 	private static void addCsLolPath() throws IOException {
 		List<String> list = new ArrayList<>();
 		try (BufferedReader in = new BufferedReader(new FileReader(OPTIONS))) {
@@ -320,12 +335,14 @@ public class Control {
 	private static void translateAndRewriteFiles(Map<String, Integer> map, String rootPath)
 			throws InterruptedException, IOException {
 		Set<String> set = map.keySet();
+		ResourceMonitor.startCpuMonitor();
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
 
 			convertToPython(map, rootPath, champion);
-			Thread.sleep(200);
+//			Thread.sleep(200);
 		}
+		ResourceMonitor.stopCpuMonitor();
 		Thread.sleep(5000);
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
@@ -354,7 +371,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgBinToPy(champion, skinNumber, rootPath);
-				Thread.sleep(100);
+				Thread.sleep(50);
 			} else {
 				Gui.updateLog(champion + " " + skinNumber + " does not exist");
 			}
@@ -460,7 +477,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgPytoBin(champion, skinNumber, rootPath);
-				Thread.sleep(100);
+				Thread.sleep(50);
 			}
 		}
 	}
