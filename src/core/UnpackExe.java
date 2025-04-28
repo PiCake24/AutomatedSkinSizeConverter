@@ -1,6 +1,5 @@
 package core;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,13 +48,13 @@ public class UnpackExe {
 	 * 
 	 * @throws IOException
 	 */
-	static void removeRitobin() throws IOException {
-		deleteHashes();
-		if (unpackedRitobin != null) {
-			Files.deleteIfExists(unpackedRitobin);
-			Logger.getInstance().log("Ritobin deleted");
-		}
-	}
+//	static void removeRitobin() throws IOException {
+//		deleteHashes();
+//		if (unpackedRitobin != null) {
+//			Files.deleteIfExists(unpackedRitobin);
+//			Logger.getInstance().log("Ritobin deleted");
+//		}
+//	}
 
 	/**
 	 * Unpacks the hashes into the tmp folder
@@ -89,20 +88,20 @@ public class UnpackExe {
 	 * @param folder
 	 * @throws IOException
 	 */
-	private static void deleteHashes() throws IOException {
-		if (unpackedFolder != null) {
-			File[] files = unpackedFolder.toFile().listFiles();
-			if (files != null) {
-				for (File file : files) {
-					Path path = file.toPath();
-					Files.delete(path);
-					Logger.getInstance().log("Deleted Hash:" + path);
-				}
-			}
-			Files.delete(unpackedFolder);
-			Logger.getInstance().log("Deleted Folder:" + unpackedFolder);
-		}
-	}
+//	private static void deleteHashes() throws IOException {
+//		if (unpackedFolder != null) {
+//			File[] files = unpackedFolder.toFile().listFiles();
+//			if (files != null) {
+//				for (File file : files) {
+//					Path path = file.toPath();
+//					Files.delete(path);
+//					Logger.getInstance().log("Deleted Hash:" + path);
+//				}
+//			}
+//			Files.delete(unpackedFolder);
+//			Logger.getInstance().log("Deleted Folder:" + unpackedFolder);
+//		}
+//	}
 
 	/**
 	 * unpacks CDTBTranslator to the tmp folder
@@ -134,12 +133,12 @@ public class UnpackExe {
 	 * 
 	 * @throws IOException
 	 */
-	static void removeCDTBTranslator() throws IOException {
-		if (unpackedCDTBTranslator != null) {
-			Files.deleteIfExists(unpackedCDTBTranslator);
-			Logger.getInstance().log("CDTBTranslator deleted");
-		}
-	}
+//	static void removeCDTBTranslator() throws IOException {
+//		if (unpackedCDTBTranslator != null) {
+//			Files.deleteIfExists(unpackedCDTBTranslator);
+//			Logger.getInstance().log("CDTBTranslator deleted");
+//		}
+//	}
 
 	/**
 	 * unpacks WadMake to the tmp folder
@@ -171,12 +170,12 @@ public class UnpackExe {
 	 * 
 	 * @throws IOException
 	 */
-	static void removeWadMake() throws IOException {
-		if (unpackedWadMake != null) {
-			Files.deleteIfExists(unpackedWadMake);
-			Logger.getInstance().log("wad-make deleted");
-		}
-	}
+//	static void removeWadMake() throws IOException {
+//		if (unpackedWadMake != null) {
+//			Files.deleteIfExists(unpackedWadMake);
+//			Logger.getInstance().log("wad-make deleted");
+//		}
+//	}
 
 	static Path getUnpackedRitobin() {
 		return unpackedRitobin;

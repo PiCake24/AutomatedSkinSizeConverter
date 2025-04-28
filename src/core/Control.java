@@ -60,14 +60,14 @@ public class Control {
 				throw new IOException();
 			}
 
-			UnpackExe.removeCDTBTranslator();
+//			UnpackExe.removeCDTBTranslator();
 		}
 
 		getActualNumberOfSkins(map, rootPath);
 
 		translateAndRewriteFiles(map, rootPath);
 
-		UnpackExe.removeRitobin();
+//		UnpackExe.removeRitobin();
 
 		if (Gui.getImportIntoCsLolCheckBox()) {
 
@@ -371,7 +371,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgBinToPy(champion, skinNumber, rootPath);
-				Thread.sleep(50);
+				Thread.sleep(10);
 			} else {
 				Gui.updateLog(champion + " " + skinNumber + " does not exist");
 			}
@@ -477,7 +477,7 @@ public class Control {
 		for (int skinNumber = 0; skinNumber <= map.get(champion); skinNumber++) {
 			if (new File(rootPath + CHARACTERPATH + champion + SKINPATH + skinNumber + ".bin").exists()) {
 				ExecuteRitobin.startProgPytoBin(champion, skinNumber, rootPath);
-				Thread.sleep(50);
+				Thread.sleep(10);
 			}
 		}
 	}

@@ -19,8 +19,8 @@ public class BackgroundConverting extends SwingWorker<String, String> {
 			Gui.updateLog(e.getMessage());
 			Logger.getInstance().log(e.getMessage());
 			e.printStackTrace();
-			UnpackExe.removeCDTBTranslator();
-			UnpackExe.removeRitobin();
+//			UnpackExe.removeCDTBTranslator();
+//			UnpackExe.removeRitobin();
 			Thread.currentThread().interrupt();
 		} finally {
 			Logger.getInstance().endLog();
