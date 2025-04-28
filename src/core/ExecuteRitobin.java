@@ -29,7 +29,6 @@ public class ExecuteRitobin {
 		String cliPath = UnpackExe.getUnpackedRitobin().toString();
 		String processName = UnpackExe.getUnpackedRitobin().getFileName().toString();
 		while (!isSystemResourcesAvailable() && isProgramRunning(processName)) {
-			System.out.println("Is already running");
 			Thread.sleep(50);
 		}
 
@@ -42,7 +41,7 @@ public class ExecuteRitobin {
 	}
 
 	/**
-	 * TODO
+	 * checks if the program is already running.
 	 * 
 	 * @param processName
 	 * @return
@@ -62,7 +61,7 @@ public class ExecuteRitobin {
 	}
 
 	/**
-	 * TODO
+	 * checks if System resources are available
 	 * 
 	 * @return
 	 */

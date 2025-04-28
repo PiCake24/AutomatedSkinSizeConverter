@@ -9,6 +9,9 @@ public class ResourceMonitor {
 	private static volatile boolean running = false; // Control flag
 	private static Thread monitorThread = null; // Reference to the monitoring thread
 
+	/**
+	 * Starts the resource monitor
+	 */
 	public static void startCpuMonitor() {
 		if (monitorThread != null && monitorThread.isAlive()) {
 			return;
@@ -35,6 +38,9 @@ public class ResourceMonitor {
 		monitorThread.start();
 	}
 
+	/**
+	 * Stops the resource monitor
+	 */
 	public static void stopCpuMonitor() {
 		running = false;
 		if (monitorThread != null) {
@@ -42,7 +48,16 @@ public class ResourceMonitor {
 		}
 	}
 
+	/**
+	 * checks if resources are available
+	 * 
+	 * @return
+	 */
 	public static boolean isSystemResourcesAvailable() {
 		return latestCpuLoad < 85.0;
 	}
+
+	public ResourceMonitor() {
+	}
+
 }

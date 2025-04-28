@@ -161,7 +161,7 @@ public class Control {
 	}
 
 	/**
-	 * TODO
+	 * Adds a root path placeholder to the option file if it did not exist already
 	 * 
 	 * @throws IOException
 	 */
@@ -182,7 +182,7 @@ public class Control {
 	}
 
 	/**
-	 * TODO
+	 * Adds a league path placeholder to the option file if it did not exist already
 	 * 
 	 * @throws IOException
 	 */
@@ -204,7 +204,7 @@ public class Control {
 	}
 
 	/**
-	 * TODO
+	 * Adds a CsLol path placeholder to the option file if it did not exist already
 	 * 
 	 * @throws IOException
 	 */
@@ -338,9 +338,7 @@ public class Control {
 		ResourceMonitor.startCpuMonitor();
 		for (int championNumber = 0; championNumber < map.size(); championNumber++) {
 			String champion = (String) set.toArray()[championNumber];
-
 			convertToPython(map, rootPath, champion);
-//			Thread.sleep(200);
 		}
 		ResourceMonitor.stopCpuMonitor();
 		Thread.sleep(5000);
