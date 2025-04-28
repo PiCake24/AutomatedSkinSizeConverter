@@ -26,11 +26,23 @@ public class LegendarySkins {
 		Gui.updateLog("Checking if champion has a legendary skin");
 		int maxSkinNumber = map.get(champion);
 		if (champion.equals("sona") && maxSkinNumber >= 6) {
-			// check for djsona1, 2, 3
+			createFolders(rootPath);
 			convertSona(rootPath);
 		} else {
 			Gui.updateLog("No legendary found");
 		}
+	}
+
+	/**
+	 * 
+	 */
+	static void createFolders(String rootPath) {
+		File file = new File(rootPath + "\\sona.wad.client\\data\\characters\\sonadjgenre01\\skins");
+		file.mkdirs();
+		file = new File(rootPath + "\\sona.wad.client\\data\\characters\\sonadjgenre02\\skins");
+		file.mkdir();
+		file = new File(rootPath + "\\sona.wad.client\\data\\characters\\sonadjgenre03\\skins");
+		file.mkdir();
 	}
 
 	/**
