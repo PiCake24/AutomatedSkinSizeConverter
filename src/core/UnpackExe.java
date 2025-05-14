@@ -67,8 +67,10 @@ public class UnpackExe {
 
 		Files.createDirectories(unpackedFolder);
 
-		String[] hashFiles = { "hashes.binentries.txt", "hashes.binfields.txt", "hashes.binhashes.txt",
-				"hashes.bintypes.txt", "hashes.game.txt", "hashes.lcu.txt" };
+		String[] hashFiles = { "hashes.binfields.txt", "hashes.bintypes.txt" };
+
+//		String[] hashFiles = { "hashes.binentries.txt", "hashes.binfields.txt", "hashes.binhashes.txt",
+//				"hashes.bintypes.txt", "hashes.game.txt", "hashes.lcu.txt" };
 		for (String fileName : hashFiles) {
 			try (InputStream in = AutomationMain.class.getResourceAsStream("/hashes/" + fileName)) {
 				if (in == null) {
