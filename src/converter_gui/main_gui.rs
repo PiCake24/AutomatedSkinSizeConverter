@@ -1,14 +1,26 @@
+use std::fs::File;
+use std::path::Path;
 use eframe::egui::{Context, Ui};
 use eframe::{egui, Frame};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread;
 use crate::cdtb;
+use crate::data::options::Options;
+
+#[derive(Default)]
+enum AppState {
+    #[default]
+    Setup,      // showing the initial setup questions
+    Running,    // normal app
+}
 
 #[derive(Default)]
 pub struct AutomatedSkinSizeConverter {
+    state: AppState,
+    options: Options,
     sets: Vec<String>,
     selected1: String,
-    show_popup: bool,
+    show_create_set: bool,
     text_input: String,
     log: Vec<String>,
     worker: Option<Receiver<WorkerMessage>>,
@@ -19,6 +31,21 @@ pub enum WorkerMessage {
 }
 impl eframe::App for AutomatedSkinSizeConverter {
     fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
+        match self.state {
+            AppState::Setup => self.setup(ui),
+            AppState::Running => self.main_ui(ui),
+        }
+    }
+}
+
+impl AutomatedSkinSizeConverter{
+    pub fn new() -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
+
+    fn main_ui(&mut self, ui: &mut Ui){
         ui.style_mut().spacing.scroll = egui::style::ScrollStyle::solid();
         //***********************
         if let Some(rx) = &self.worker {
@@ -59,7 +86,7 @@ impl eframe::App for AutomatedSkinSizeConverter {
                         });
 
                     if ui.button("Create new Set").clicked() {
-                        self.show_popup = true;
+                        self.show_create_set = true;
                     }
 
                     if ui.button("Download hashes").clicked() {
@@ -102,7 +129,20 @@ impl eframe::App for AutomatedSkinSizeConverter {
             }
             ui.hyperlink("https://github.com/emilk/egui");
 
+            ui.horizontal(|ui| {
+                // checkbox for downloading files (this will also redownload hashes
+                // checkbox for import cslol
+                // checkbox for import ltk
 
+                // button clear log
+
+                if ui.button("Start Conversion").clicked() {
+                    // convert according to rules in files
+                }
+
+                ui.label("Hi");
+                ui.label("No");
+            });
 
             ui.separator();
 
@@ -115,36 +155,27 @@ impl eframe::App for AutomatedSkinSizeConverter {
             let num_rows = self.log.len();
 
             egui::ScrollArea::vertical()
-            .stick_to_bottom(true).auto_shrink(false)
-            .show_rows(ui, row_height, num_rows, |ui, row_range| {
-                for line in &self.log[row_range] {
-                    ui.label(line);
-                }
-            });
+                .stick_to_bottom(true).auto_shrink(false)
+                .show_rows(ui, row_height, num_rows, |ui, row_range| {
+                    for line in &self.log[row_range] {
+                        ui.label(line);
+                    }
+                });
             //***********************
         });
 
-        if self.show_popup {
+        if self.show_create_set {
             self.add_set(ui)
         }
     }
-}
-
-impl AutomatedSkinSizeConverter{
-    pub fn new(existing_sets: Vec<String>) -> Self {
-        Self {
-            sets: existing_sets,
-            ..Default::default()
-        }
-    }
-    fn add_set(&mut self, ui: &Ui,){
-        let modal = egui::Modal::new(egui::Id::new("my_modal")).show(ui, |ui| {
+    fn add_set(&mut self, ui: &Ui){
+        let modal = egui::Modal::new(egui::Id::new("new_set")).show(ui, |ui| {
             ui.set_min_width(250.0);
 
-            ui.heading("My Popup");
+            ui.heading("Creating a new set");
             ui.separator();
 
-            ui.label("Enter some text:");
+            ui.label("Name of the new set:");
             ui.text_edit_singleline(&mut self.text_input);
 
             ui.add_space(8.0);
@@ -152,23 +183,69 @@ impl AutomatedSkinSizeConverter{
             ui.horizontal(|ui| {
                 if ui.button("Confirm").clicked() {
                     self.sets.push(self.text_input.clone());
+                    //todo create folder
                     // println!("Input: {}", self.text_input);
                     self.text_input.clear();
-                    self.show_popup = false;
+                    self.show_create_set = false;
                 }
                 if ui.button("Cancel").clicked() {
                     self.text_input.clear();
-                    self.show_popup = false;
+                    self.show_create_set = false;
                 }
             });
         });
 
-        // Close if user clicks the dark backdrop
         if modal.should_close() {
-            self.show_popup = false;
+            self.show_create_set = false;
         }
     }
     fn options(){
-    //todo modal for options
+        //todo modal for options
+        //modify file
+    }
+
+    fn setup(&mut self, ui: &Ui){
+        //todo
+        Self::check_options(self, ui);
+        //check_sets()
+        //todo versioncheck
+        self.state = AppState::Running;
+    }
+    fn check_options(&mut self, ui: &Ui){
+        let options_file = Path::new("Options.txt");
+        if !options_file.exists(){
+             egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
+                ui.set_min_width(250.0);
+
+                ui.heading("No Options.txt detected. Do you want to create a new one?");
+                ui.separator();
+
+                ui.add_space(8.0);
+
+                ui.horizontal(|ui| {
+                    if ui.button("Confirm").clicked() {
+                        self.sets.push(self.text_input.clone());
+                        //todo create file, ask for data basically
+                        File::create_new(options_file);
+                    }
+                    if ui.button("Cancel").clicked() {
+                        // todo close application
+                    }
+                });
+            });
+            File::create_new(options_file).expect("Could not Create Options File");
+        } else{
+            //todo read file, fill options
+            Options::new();
+            Self::check_sets();
+        }
+    }
+    fn check_sets() -> Vec<String>{ //todo
+        return vec!("Default".to_string())
+        //check if set folders exist, if yes, load them, if no create default one
+        //when creating default one copy files into it
     }
 }
+
+
+

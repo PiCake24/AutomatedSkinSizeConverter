@@ -1,3 +1,4 @@
+#[derive(Default)]
 pub struct Options {
     project_path: String,
     league_path: String,
