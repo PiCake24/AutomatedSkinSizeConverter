@@ -6,7 +6,8 @@ use crate::cdtb::hashes::download_hashes;
 use crate::converter::export::{export_cslol, export_ltk};
 use crate::data::options::Options;
 
-pub fn control(option: &Options, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool){
+pub fn control(options: &Options, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool){
+    unpack_ritobin();
     let map = get_champions();
     get_skins();
     if download_files {
@@ -18,18 +19,18 @@ pub fn control(option: &Options, download_files:bool, export_cslol_checkbox:bool
             wad_extract(&champion);
         }
         let max_skin = map.get(champion).unwrap();
-        bin_to_json(champion, champion_parent);
+        bin_to_json(options, champion, &champion_parent);
         for skin_number in 0..*map.get(champion).unwrap(){ //todo skins
-            rescale_skins(champion, champion_parent, skin_number);
+            rescale_skins(champion, &champion_parent, skin_number);
         }
 
-        json_to_bin(champion, champion_parent);
+        json_to_bin(champion, &champion_parent);
 
         if export_cslol_checkbox{
-            export_cslol(champion_parent);
+            export_cslol(&champion_parent);
         }
         if export_ltk_checkbox{
-            export_ltk(champion_parent);
+            export_ltk(&champion_parent);
         }
     }
 }
@@ -43,7 +44,7 @@ fn get_skins() {
     // read options.txt (later in set)
     // todo
 }
-fn get_parent() -> () {
+fn get_parent() -> String {
     todo!()
 }
 
