@@ -1,5 +1,5 @@
 mod cdtb;
-mod converter_gui;
+mod converter;
 mod data;
 
 use std::default::Default;
@@ -7,7 +7,7 @@ use std::fs::File;
 use std::path::Path;
 use eframe::{egui, Frame, Storage};
 use eframe::egui::{Context, TextBuffer};
-use crate::converter_gui::main_gui::AutomatedSkinSizeConverter;
+use crate::converter::main_gui::AutomatedSkinSizeConverter;
 use crate::data::options::Options;
 
 //todo version

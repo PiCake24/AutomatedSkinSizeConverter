@@ -1,3 +1,4 @@
+use crate::converter::control::control;
 use std::fs::File;
 use std::path::Path;
 use eframe::egui::{Context, Ui};
@@ -10,18 +11,24 @@ use crate::data::options::Options;
 #[derive(Default)]
 enum AppState {
     #[default]
-    Setup,      // showing the initial setup questions
-    Running,    // normal app
+    CheckFile,
+    CheckSets,
+    Running,
 }
 
 #[derive(Default)]
 pub struct AutomatedSkinSizeConverter {
     state: AppState,
     options: Options,
+    download_files: bool,
+    export_ltk:bool,
+    export_cslol: bool,
+
     sets: Vec<String>,
     selected1: String,
     show_create_set: bool,
-    text_input: String,
+    new_set_input: String,
+
     log: Vec<String>,
     worker: Option<Receiver<WorkerMessage>>,
 }
@@ -32,8 +39,11 @@ pub enum WorkerMessage {
 impl eframe::App for AutomatedSkinSizeConverter {
     fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
         match self.state {
-            AppState::Setup => self.setup(ui),
+            AppState::CheckFile => self.check_options(ui),
             AppState::Running => self.main_ui(ui),
+            AppState::CheckSets => (
+                // self.check_sets() todo
+            ),
         }
     }
 }
@@ -100,7 +110,6 @@ impl AutomatedSkinSizeConverter{
                         thread::spawn(move || {
                             tx.send(WorkerMessage::Log("Starting download...".into())).ok();
 
-                            // your actual work here
                             // cdtb::hashes::download_hashes();
 
                             tx.send(WorkerMessage::Log("Hashes downloaded successfully".into())).ok();
@@ -130,18 +139,15 @@ impl AutomatedSkinSizeConverter{
             ui.hyperlink("https://github.com/emilk/egui");
 
             ui.horizontal(|ui| {
-                // checkbox for downloading files (this will also redownload hashes
-                // checkbox for import cslol
-                // checkbox for import ltk
+                ui.checkbox(&mut self.download_files, "Download Files");
+                ui.checkbox(&mut self.export_cslol, "Export to cslol");
+                ui.checkbox(&mut self.export_ltk, "Export to ltk");
 
                 // button clear log
 
                 if ui.button("Start Conversion").clicked() {
-                    // convert according to rules in files
+                    control(&self.options, self.download_files, self.export_cslol, self.export_ltk);
                 }
-
-                ui.label("Hi");
-                ui.label("No");
             });
 
             ui.separator();
@@ -176,20 +182,20 @@ impl AutomatedSkinSizeConverter{
             ui.separator();
 
             ui.label("Name of the new set:");
-            ui.text_edit_singleline(&mut self.text_input);
+            ui.text_edit_singleline(&mut self.new_set_input);
 
             ui.add_space(8.0);
 
             ui.horizontal(|ui| {
                 if ui.button("Confirm").clicked() {
-                    self.sets.push(self.text_input.clone());
+                    self.sets.push(self.new_set_input.clone());
                     //todo create folder
                     // println!("Input: {}", self.text_input);
-                    self.text_input.clear();
+                    self.new_set_input.clear();
                     self.show_create_set = false;
                 }
                 if ui.button("Cancel").clicked() {
-                    self.text_input.clear();
+                    self.new_set_input.clear();
                     self.show_create_set = false;
                 }
             });
@@ -203,48 +209,41 @@ impl AutomatedSkinSizeConverter{
         //todo modal for options
         //modify file
     }
-
-    fn setup(&mut self, ui: &Ui){
-        //todo
-        Self::check_options(self, ui);
-        //check_sets()
-        //todo versioncheck
-        self.state = AppState::Running;
-    }
     fn check_options(&mut self, ui: &Ui){
+        println!("check options");
         let options_file = Path::new("Options.txt");
         if !options_file.exists(){
              egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
                 ui.set_min_width(250.0);
 
-                ui.heading("No Options.txt detected. Do you want to create a new one?");
+                 // todo read own options first, if they exist dont change anything
+                 // todo change this to reading options.txt, asking for rest
+                ui.heading("No Options.txt in the current directory detected. Do you want to create a new one in the current directory?");
                 ui.separator();
-
                 ui.add_space(8.0);
 
                 ui.horizontal(|ui| {
                     if ui.button("Confirm").clicked() {
-                        self.sets.push(self.text_input.clone());
-                        //todo create file, ask for data basically
-                        File::create_new(options_file);
+                        self.sets.push(self.new_set_input.clone());
+                        File::create_new(options_file).expect("Could not create file");
+                        self.state = AppState::Running
                     }
-                    if ui.button("Cancel").clicked() {
-                        // todo close application
+                    if ui.button("Cancel (this closes the application)").clicked() {
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
             });
-            File::create_new(options_file).expect("Could not Create Options File");
         } else{
             //todo read file, fill options
             Options::new();
-            Self::check_sets();
+            self.state = AppState::Running;
         }
     }
-    fn check_sets() -> Vec<String>{ //todo
-        return vec!("Default".to_string())
-        //check if set folders exist, if yes, load them, if no create default one
-        //when creating default one copy files into it
-    }
+    // fn check_sets(&mut self){ //todo
+    //     vec!("Default".to_string());
+    //     //check if set folders exist, if yes, load them, if no create default one
+    //     //when creating default one copy files into it
+    // }
 }
 
 
