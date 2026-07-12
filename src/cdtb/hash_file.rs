@@ -44,14 +44,6 @@ impl HashFile{
                 }
                 line.clear();
             }
-
-            // for line in reader.lines() {
-            //     let line = line.unwrap();
-            //     if let Some((key, value)) = line.split_once(' ') {
-            //         let key = u64::from_str_radix(key, 16).unwrap();
-            //         self.hashes.insert(key, value.into());
-            //     }
-            // }
         }
         &self.hashes
     }

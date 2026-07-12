@@ -1,5 +1,3 @@
-use std::io::{Seek, SeekFrom};
-
 /// Helper class to read from binary data in memory
 pub struct BinaryParser {
     data: Vec<u8>,
