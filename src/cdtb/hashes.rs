@@ -1,33 +1,31 @@
+use crate::converter::main_gui::log;
 use std::fs;
 use std::io::Read;
+use std::sync::mpsc::Sender;
+use crate::converter::main_gui::WorkerMessage;
 
 /// Downloads hashes from Communitydragon
-pub fn download_hashes(){
+pub fn download_hashes(sender:&Sender<WorkerMessage>) -> Result<(), Box<dyn std::error::Error>>{
     let target_dir = "hashes";
 
-    fs::create_dir_all(&target_dir).expect("Could not create target directory");
+    fs::create_dir_all(&target_dir)?;
 
     let hash_files = [
         "hashes.binentries.txt",
         "hashes.binfields.txt",
-        // "hashes.binhashes.txt",
         "hashes.bintypes.txt",
         "hashes.game.txt",
-        // "hashes.lcu.txt",
-        // "hashes.rst.txt",
     ];
     for basename in hash_files{
-        println!("Downloading {}", basename);
+        log(sender, format!("Downloading {}", basename));
         let url = format!("https://raw.communitydragon.org/data/hashes/lol/{}", basename);
-        let mut res = reqwest::blocking::get(url).expect("");
+        let mut res = reqwest::blocking::get(url).inspect_err(|e| { log(sender, format!("Could not download hashes: {}", e))})?;
         if res.status().is_success() {
             let mut body = String::new();
-            res.read_to_string(&mut body).expect("");
-
-            // println!("Status: {}", res.status());
-            // println!("Headers:\n{:#?}", res.headers());
-            // println!("Body:\n{}", body);
-            fs::write(target_dir.to_owned() + "//" + basename, body).expect("Could not write to file");
+            res.read_to_string(&mut body).inspect_err(|e| {log(sender, format!("Error while reading file: {}", e))})?;
+            let path = target_dir.to_owned() + "//" + basename;
+            fs::write(&path, body).inspect_err(|e| { log(sender,format!("Could not write to file {}: {}", &path, e))})?;
         }
     }
+    Ok(())
 }
