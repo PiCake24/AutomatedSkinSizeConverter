@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use rayon::prelude::*;
 use crate::data::options::Options;
-/// todo
+/// uses ritobin to convert multiple bin files at the same time into a json file
 pub fn bin_to_json(options: &Options,champion: &str, champion_parent: &str){
     let ritobin_path = r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe"; //todo take from options (it is somewhere in root)
     let bin_path = format!(r"D:\wad5\{}\data\characters\{}\skins\", champion_parent, champion);
@@ -18,7 +18,7 @@ pub fn bin_to_json(options: &Options,champion: &str, champion_parent: &str){
         }
     });
 }
-/// todo
+/// uses ritobin to convert a bin file to a json file
 fn bin_to_json_single(ritobin_path: &str, bin_path: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>>{
     let old_name = format!(r"{}{}", bin_path, filename);
     let new_name = format!(r"{}\{}{}", bin_path, &filename[..filename.len() - 3], "json");
@@ -35,8 +35,8 @@ fn bin_to_json_single(ritobin_path: &str, bin_path: &str, filename: &str) -> Res
     println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
     Ok(())
 }
-/// todo
-pub fn json_to_bin(options: Options,champion: &str, champion_parent: &str){
+/// uses ritobin to convert a json file to a bin file
+pub fn json_to_bin(options: &Options,champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo remove this return, make error handling in file
     //todo change path of ritobin, ideally have a somewhat global path, where both methods use it
     let ritobin_path = r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe";
     let bin_path = format!(r"D:\wad5\{}\data\characters\{}\skins", champion_parent, champion);
