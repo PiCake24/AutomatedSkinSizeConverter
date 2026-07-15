@@ -1,7 +1,8 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::sync::mpsc::Sender;
 use rustc_hash::FxHashMap;
-
+use crate::converter::main_gui::{log, WorkerMessage};
 
 /// Store hashes, support load and caching
 pub struct HashFile {
@@ -27,24 +28,24 @@ impl HashFile{
     ///
     /// # Returns
     /// The HashMap of the file
-    pub(crate) fn load(&mut self) -> &FxHashMap<u64, Box<str>> {
+    pub(crate) fn load(&mut self, sender:&Sender<WorkerMessage>) -> Result<&FxHashMap<u64, Box<str>>, Box<dyn std::error::Error>> {
         if self.hashes.is_empty(){
             // open and read file line by line with a bufread
             // then put that into the hashmap
-            let file = File::open(&self.filename).expect("Could not open file");
+            let file = File::open(&self.filename).inspect_err(|e|{ log(sender, format!("Could not open file: {}", e))})?;
             let mut reader = BufReader::new(file);
 
             let mut line = String::with_capacity(256);
-            while reader.read_line(&mut line).unwrap() > 0 {
+            while reader.read_line(&mut line).inspect_err(|e|{ log(sender, format!("Error while reading line: {}", e))})? > 0 {
                 let trimmed = line.trim_end();
                 if let Some((key_str, value)) = trimmed.split_once(' ') {
                     if let Ok(key) = u64::from_str_radix(key_str, 16) {
-                        self.hashes.insert(key, value.into()); // Box<str>
+                        self.hashes.insert(key, value.into());
                     }
                 }
                 line.clear();
             }
         }
-        &self.hashes
+        Ok(&self.hashes)
     }
 }
