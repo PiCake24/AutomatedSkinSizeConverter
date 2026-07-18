@@ -10,6 +10,8 @@ use crate::data::options::Options;
 
 #[derive(Default)]
 enum AppState {
+
+    VersionCheck,
     #[default]
     CheckFile,
     CheckSets,
@@ -39,6 +41,7 @@ pub enum WorkerMessage {
 impl eframe::App for AutomatedSkinSizeConverter {
     fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
         match self.state {
+            AppState::VersionCheck => (),
             AppState::CheckFile => self.check_options(ui),
             AppState::Running => self.main_ui(ui),
             AppState::CheckSets => (
@@ -101,23 +104,18 @@ impl AutomatedSkinSizeConverter{
 
                     if ui.button("Download hashes").clicked() {
                         //***********************
-                        let (tx, rx) = mpsc::channel();
-                        self.worker = Some(rx);
-                        self.log.clear();
+                        let (sender, receiver) = mpsc::channel();
+                        self.worker = Some(receiver);
 
                         let ctx = ui.ctx().clone();  // needed to trigger repaints from the thread
+                        let options = self.options.clone();
 
                         thread::spawn(move || {
-                            tx.send(WorkerMessage::Log("Starting download...".into())).ok();
+                            log(&sender, "Starting download...");
 
-                            // cdtb::hashes::download_hashes();
 
-                            tx.send(WorkerMessage::Log("Hashes downloaded successfully".into())).ok();
-                            tx.send(WorkerMessage::Done).ok();
-
-                            let x = 0;
-                            while x < 100{
-                                tx.send(WorkerMessage::Log("A".into())).ok();
+                            if cdtb::hashes::download_hashes(&options, &sender).is_ok(){
+                                log(&sender, "Hashes downloaded and written successfully");
                             }
 
                             ctx.request_repaint();  // wake the UI when done
@@ -129,7 +127,7 @@ impl AutomatedSkinSizeConverter{
                 });
             });
         });
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show_inside(ui, |ui| { //todo fuck
             //make some buttons or checkboxes or smth
             ui.add(egui::Label::new("Hello World!"));
             ui.label("A shorter and more convenient way to add a label.");
@@ -143,10 +141,30 @@ impl AutomatedSkinSizeConverter{
                 ui.checkbox(&mut self.export_cslol, "Export to cslol");
                 ui.checkbox(&mut self.export_ltk, "Export to ltk");
 
-                // button clear log
+                // todo button clear log
 
                 if ui.button("Start Conversion").clicked() {
-                    control(&self.options, self.download_files, self.export_cslol, self.export_ltk);
+                    let (sender, receiver) = mpsc::channel();
+                    self.worker = Some(receiver);
+
+                    let ctx = ui.ctx().clone();
+                    let options = self.options.clone();
+                    let download_files = self.download_files.clone();
+                    let export_cslol = self.export_cslol.clone();
+                    let export_ltk = self.export_ltk.clone();
+
+                    thread::spawn(move || {
+
+                        control(&sender, &options, download_files, export_cslol, export_ltk);
+
+                        if true{
+                            log(&sender, " and written successfully");
+                        }
+
+                        ctx.request_repaint();  // wake the UI when done
+
+                    });
+
                 }
             });
 
@@ -225,7 +243,7 @@ impl AutomatedSkinSizeConverter{
                 ui.horizontal(|ui| {
                     if ui.button("Confirm").clicked() {
                         self.sets.push(self.new_set_input.clone());
-                        File::create_new(options_file).expect("Could not create file");
+                        File::create_new(options_file).inspect_err(|e|{log(&Self::get_sender(), "Could not create file")}); //todo
                         self.state = AppState::Running
                     }
                     if ui.button("Cancel (this closes the application)").clicked() {
@@ -235,7 +253,7 @@ impl AutomatedSkinSizeConverter{
             });
         } else{
             //todo read file, fill options
-            Options::new();
+            self.options = Options::new();
             self.state = AppState::Running;
         }
     }
@@ -244,6 +262,13 @@ impl AutomatedSkinSizeConverter{
     //     //check if set folders exist, if yes, load them, if no create default one
     //     //when creating default one copy files into it
     // }
+    fn get_sender() -> Sender<WorkerMessage>{
+        let (sender, receiver) = mpsc::channel();
+        return sender
+    }
+}
+pub fn log(sender: &mpsc::Sender<WorkerMessage>, msg: impl Into<String>) {
+    let _ = sender.send(WorkerMessage::Log(msg.into()));
 }
 
 
