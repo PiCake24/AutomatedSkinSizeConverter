@@ -68,7 +68,7 @@ impl WadFileHeader{
             ext: "".to_string(),
         }
     }
-    // _magic_numbers_ext = {
+    // _magic_numbers_ext = { //todo
     //     b'OggS': 'ogg',
     //     bytes.fromhex('00010000'): 'ttf',
     //     bytes.fromhex('1a45dfa3'): 'webm',
@@ -106,7 +106,7 @@ impl WadFileHeader{
     /// # Returns
     /// * Success: Data as Vec<u8>
     /// * Fail: Error
-    fn read_data(&self, parser: &mut BinaryParser, subchunk_toc: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    fn read_data(&self, sender:&Sender<WorkerMessage>, parser: &mut BinaryParser, subchunk_toc: Vec<u8>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         parser.seek(self.offset as u64);
 
         //assume files are small enough to fit in memory
@@ -124,17 +124,16 @@ impl WadFileHeader{
             // return None
         }
         else if self.wad_type == 3{
-            return Ok(decode_all(&*data)?)
+            return Ok(decode_all(&*data).inspect_err(|e|{ log(sender, format!("Could not decode data: {}", e))})?)
         }
         else if self.wad_type == 4{
             // Data is split into individual subchunks that may be zstd compressed
-            if !subchunk_toc.is_empty(){
+            return if !subchunk_toc.is_empty() {
                 let mut chunks_data: Vec<u8> = vec![];
                 let mut subchunk_parser = BinaryParser::new(subchunk_toc.clone());
                 let mut offset = 0u32;
 
                 for index in self.first_subchunk_index..self.first_subchunk_index + self.subchunk_count as u16 {
-
                     subchunk_parser.seek(16 * index as u64); //this maybe works
 
                     let compressed_size = subchunk_parser.read_u32_le();   // I
@@ -156,19 +155,17 @@ impl WadFileHeader{
                     if xxh3_64(&subchunk_data) != subchunk_hash {
                         return Err("Hashed Data is wrong".into());
                     }
-                    if compressed_size == uncompressed_size{
+                    if compressed_size == uncompressed_size {
                         // assume data is uncompressed
                         chunks_data.append(&mut subchunk_data)
-                    }
-                    else{
-                        chunks_data.append(&mut decode_all(&*subchunk_data)?);
+                    } else {
+                        chunks_data.append(&mut decode_all(&*subchunk_data).inspect_err(|e| { log(sender, format!("Could not decode data: {}", e)) })?);
                     }
                     offset += compressed_size;
                 }
-                return Ok(chunks_data)
-            }
-            else{
-                return Err(std::io::Error::new(
+                Ok(chunks_data)
+            } else {
+                Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData, "No Subchunk_toc"
                 ).into())
 
@@ -192,7 +189,7 @@ impl WadFileHeader{
     /// On error, partially retrieved files are removed.
     /// File redirections are skipped.
     fn extract(&self, sender:&Sender<WorkerMessage>, parser: &mut BinaryParser, output_path: PathBuf, subchunk_toc: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-        let data = self.read_data(parser, subchunk_toc)?;
+        let data = self.read_data(sender, parser, subchunk_toc)?;
 
         if data.is_empty(){
             return Err(std::io::Error::new(
@@ -213,7 +210,7 @@ impl WadFileHeader{
         // # image type
         let typ = imghdr::from_bytes(data);
         // typ = imghdr.what(None, h=data)
-        if typ.unwrap() == Type::Jpeg{
+        if typ.unwrap() == Type::Jpeg{ //todo
             return "jpg".to_string()
         } else if typ.unwrap() == Type::Xbm { //todo
             // pass
@@ -222,7 +219,7 @@ impl WadFileHeader{
             s.make_ascii_lowercase();
             return s
         }
-        // # json
+        // # json //todo
         // try:
         //  json.loads(data)
         //  return 'json'
@@ -305,7 +302,7 @@ impl Wad{
     /// # Arguments
     /// * path: Path to the wad archive
     /// * hashes: hash file. generally hashes.game
-    pub(crate) fn new(sender:&Sender<WorkerMessage>, path: String, hashes: &FxHashMap<u64, Box<str>>) -> Wad{
+    pub(crate) fn new(sender:&Sender<WorkerMessage>, path: String, hashes: &FxHashMap<u64, Box<str>>) -> Result<Wad, Box<dyn std::error::Error>>{
         let mut wad = Wad {
             path,
             version: Version::new(),
@@ -313,14 +310,14 @@ impl Wad{
             subchunk_toc: vec![],
             hash_to_guessed_extensions: HashMap::new()
         };
-        wad.parse_headers().expect("TODO: panic message"); //todo
+        wad.parse_headers(sender)?;
         wad.resolve_paths(hashes);
-        wad.load_subchunk_toc(sender).expect("TODO: panic message"); //todo
-        wad
+        wad.load_subchunk_toc(sender)?;
+        Ok(wad)
     }
     /// Parse version and file list
-    fn parse_headers(&mut self) -> Result<(), Box<dyn std::error::Error>>{
-        let data = fs::read(self.path.clone())?;
+    fn parse_headers(&mut self, sender:&Sender<WorkerMessage>) -> Result<(), Box<dyn std::error::Error>>{
+        let data = fs::read(self.path.clone()).inspect_err(|e|{ log(sender, format!("Could not read file: {}", e))})?;
 
         let mut parser = BinaryParser::new(data);
 
@@ -330,7 +327,10 @@ impl Wad{
 
 
         if magic != *b"RW"{
-            panic!("invalid magic code") //todo
+            log(sender, "Invalid Magic Code");
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData, "Invalid Magic Code"
+            ).into())
         }
         self.version.add(version_major, version_minor);
 
@@ -344,13 +344,19 @@ impl Wad{
             parser.seek(268);
         }
         else{
-            panic!("unsupported WAD version: {version_major}.{version_minor}"); //todo
+            log(sender, format!("Unsupported WAD version: {}.{}", version_major, version_minor));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData, format!("Unsupported WAD version: {}.{}", version_major, version_minor)
+            ).into())
         }
 
         let entry_count = parser.read_u32_le();
-        if version_major == 1{ //fix, if this ever panics
-            panic!("VERSION 1: NEEDS Implementation"); //todo
-            // self.files = (0..entry_count)
+        if version_major == 1{
+            log(sender, "Major Version 1 is not supported yet");
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData, "Major Version 1 is not supported yet"
+            ).into())
+            // self.files = (0..entry_count)//todo
             //     .map(|_| WadFileHeader::new_short(
             //          parser.read_u64_le(), // Q
             //          parser.read_u32_le(), // I
@@ -391,7 +397,7 @@ impl Wad{
             }
         }
     }
-    /// finds and loads the subchunkchtoc
+    /// finds and loads the subchunk_toc
     fn load_subchunk_toc(&mut self, sender:&Sender<WorkerMessage>) -> Result<(), Box<dyn std::error::Error>>{
         for wad_file in &self.files{
             if wad_file.path == ""{
@@ -400,20 +406,29 @@ impl Wad{
             if !wad_file.path.ends_with(".subchunktoc"){
                 continue
             }
-            let data = fs::read(&self.path).inspect_err(|e| { log(sender, format!("Could not read subchunk_toc: {}", e))})?;
-            let mut parser = BinaryParser::new(data);
-            self.subchunk_toc = wad_file.read_data(&mut parser, vec![])?;
+            let data_result = fs::read(&self.path).inspect_err(|e| { log(sender, format!("Could not read subchunk_toc: {}", e))});
+            if data_result.is_ok(){
+                let data = data_result?;
+                let mut parser = BinaryParser::new(data);
+                let subchunk_data = wad_file.read_data(sender, &mut parser, vec![]);
+                if subchunk_data.is_ok(){
+                    self.subchunk_toc = subchunk_data?;
+                }
+            }
         }
         Ok(())
     }
     /// panics and stops the program if not all hashes are known
-    pub fn guess_extensions(&mut self, sender:&Sender<WorkerMessage>){
+    pub fn guess_extensions(&mut self, sender:&Sender<WorkerMessage>) -> Result<(), Box<dyn std::error::Error>>{
         // avoid opening the file if not needed
         let mut unknown_ext = false;
         for wad_file in &mut self.files{
             if wad_file.ext == "" {
-                wad_file.ext = self.hash_to_guessed_extensions.get(&wad_file.path_hash).unwrap().clone(); //todo
-                if wad_file.ext == "" {
+                let wad_file_result = self.hash_to_guessed_extensions.get(&wad_file.path_hash);
+                if wad_file_result.is_some(){
+                    wad_file.ext = wad_file_result.unwrap().clone();
+                } else{
+                    log(sender, format!("The following extension is not known: {}", wad_file.path));
                     println!("The following extension is not known: {}", wad_file.path);
                     unknown_ext = true;
                 }
@@ -421,27 +436,28 @@ impl Wad{
         }
         if !unknown_ext{
             println!("All extensions known");
-            return
+            return Ok(())
         }
-        let all_data = fs::read(self.path.clone()).unwrap(); //todo
+        let all_data = fs::read(self.path.clone()).inspect_err(|e|{ log(sender, format!("Could not read file: {}", e))})?;
         let parser = &mut BinaryParser::new(all_data);
         for wad_file in &mut self.files{
             if wad_file.ext == "" {
-                let data = wad_file.read_data(parser, self.subchunk_toc.clone()).unwrap_or(vec![]);
+                let data = wad_file.read_data(sender, parser, self.subchunk_toc.clone()).unwrap_or(vec![]);
                 if data.is_empty(){
                     continue
                 }
-                wad_file.ext = WadFileHeader::guess_extension(sender, data); //probably todo
+                wad_file.ext = WadFileHeader::guess_extension(sender, data); //probably todo, then continue instead of return
                 self.hash_to_guessed_extensions.insert(wad_file.path_hash, wad_file.ext.clone());
             }
         }
+        Ok(())
     }
     /// Extract WAD archive
     ///
     /// # Arguments
     /// * output_path: the output path of the
     pub fn extract(&mut self, sender:&Sender<WorkerMessage>, output_path : String) -> Result<(), Box<dyn std::error::Error>>{
-        self.sanitize_paths();
+        self.sanitize_paths(sender);
         self.set_unknown_paths("unknown");
         let data = fs::read(self.path.clone()).inspect_err(|e|{ log(sender, format!("Could not read file: {}", e))})?;
         let mut parser = BinaryParser::new(data);
@@ -452,13 +468,15 @@ impl Wad{
             let mut full_path = PathBuf::from(base);
             full_path.extend(relative.components());
 
-            wad_file.extract(sender, &mut parser, full_path, self.subchunk_toc.clone())?;
+            if wad_file.extract(sender, &mut parser, full_path, self.subchunk_toc.clone()).is_err(){
+                continue
+            }
         }
         Ok(())
     }
 
     /// Sanitize paths for extract purposes; for example truncating files whose basename has a length of at least 250
-    fn sanitize_paths(&mut self){
+    fn sanitize_paths(&mut self, sender:&Sender<WorkerMessage>){
         for wad_file in &mut self.files{
             if wad_file.path != ""{
                 let ext = Path::new(&wad_file.path)
@@ -467,8 +485,8 @@ impl Wad{
                     .map(|e| format!(".{}", e))
                     .unwrap_or(".cdtb".to_string());
                 if ext == ".cdtb"{
-                    println!("{}", ext);
-                    panic!("CDTB PATH old name idk"); //todo
+                    log(sender, "extensionless name collision");
+                    continue
                     //some extensionless files conflict with folder names
                     //append a custom suffix to resolve this conflict
                     // ext = ".cdtb"; todo
@@ -482,15 +500,15 @@ impl Wad{
                 let path = PathBuf::from(&wad_file.path);
 
                 let filename = path.file_name()
-                    .unwrap_or_default() //todo?
+                    .unwrap_or_default()
                     .to_string_lossy();
 
                 if filename.len() >= 250 {
                     let ext = path.extension()
                         .map(|e| format!(".{}", e.to_string_lossy()))
-                        .unwrap_or_default(); //todo?
+                        .unwrap_or_default();
 
-                    let parent = path.parent().unwrap_or(Path::new("")); //todo?
+                    let parent = path.parent().unwrap_or(Path::new(""));
 
                     let truncated_stem = &filename[..250 - 17 - ext.len()];
                     let new_filename = format!("{}.{:016x}{}", truncated_stem, wad_file.path_hash, ext);
@@ -499,7 +517,6 @@ impl Wad{
                 }
             }
         }
-
     }
     /// Set a path for files without one
     /// actually does nothing, but panics if not all paths are known, cuz I am lazy
