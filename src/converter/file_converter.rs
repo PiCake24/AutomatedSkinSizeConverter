@@ -4,19 +4,20 @@ use std::process::Command;
 use rayon::prelude::*;
 use crate::data::options::Options;
 /// uses ritobin to convert multiple bin files at the same time into a json file
-pub fn bin_to_json(options: &Options,champion: &str, champion_parent: &str){
-    let ritobin_path = r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe"; //todo take from options (it is somewhere in root)
-    let bin_path = format!(r"D:\wad5\{}\data\characters\{}\skins\", champion_parent, champion);
-    let files: Vec<_> = fs::read_dir(&bin_path).unwrap().collect();
+pub fn bin_to_json(options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let ritobin_path = &format!(r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe"); //todo take from options (it is somewhere in root)
+    let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion);
+    let files: Vec<_> = fs::read_dir(&bin_path).unwrap().collect(); //todo
 
     files.into_par_iter().for_each(|entry| {
-        let entry = entry.unwrap();
-        let filepath = entry.file_name().into_string().unwrap();
+        let entry = entry.unwrap(); //todo, continue ig
+        let filepath = entry.file_name().into_string().unwrap(); //todo
 
         if filepath.ends_with(".bin") && filepath != "root.bin" {
-            bin_to_json_single(ritobin_path, &bin_path, &filepath).expect("ritobin failed");
+            bin_to_json_single(ritobin_path, &bin_path, &filepath).expect("ritobin failed"); //todo
         }
     });
+    Ok(())
 }
 /// uses ritobin to convert a bin file to a json file
 fn bin_to_json_single(ritobin_path: &str, bin_path: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>>{
@@ -26,11 +27,11 @@ fn bin_to_json_single(ritobin_path: &str, bin_path: &str, filename: &str) -> Res
         .args(["/C",
             ritobin_path,
             "-d",
-            r"C:\Users\Yanni\RustroverProjects\Skinswapper\hashes\ritobin",
+            r"C:\Users\Yanni\RustroverProjects\Skinswapper\hashes\ritobin", //todo
             &old_name,
             &new_name])
         .output()?;
-    println!("status: {}", output.status);
+    println!("status: {}", output.status); //todo log
     println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
     println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
     Ok(())
@@ -38,7 +39,7 @@ fn bin_to_json_single(ritobin_path: &str, bin_path: &str, filename: &str) -> Res
 /// uses ritobin to convert a json file to a bin file
 pub fn json_to_bin(options: &Options,champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo remove this return, make error handling in file
     //todo change path of ritobin, ideally have a somewhat global path, where both methods use it
-    let ritobin_path = r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe";
+    let ritobin_path = r"D:\Programs verknuepfng\Programs\ritobin\ritobin_cli.exe"; //todo
     let bin_path = format!(r"D:\wad5\{}\data\characters\{}\skins", champion_parent, champion);
 
     for entry in fs::read_dir(&bin_path)? {

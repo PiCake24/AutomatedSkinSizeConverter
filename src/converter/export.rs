@@ -8,7 +8,7 @@ use walkdir::WalkDir;
 use zip::write::FileOptions;
 
 /// todo
-pub fn export_cslol(){
+pub fn export_cslol(champion_parent: &str){
     //todo
     // create wad archive
     // create folder in cslol installed

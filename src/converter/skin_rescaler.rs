@@ -14,7 +14,7 @@ pub fn rescale_skins(champion:&str, champion_parent:&str, skin: u16){
     let f = File::open(&filepath).expect("File not available");
     let mut br = BufReader::new(&f);
     br.read_to_string(&mut data).expect("Should be able to read to string");
-    let mut parsed: Value = serde_json::from_str(&data).unwrap();
+    let mut parsed: Value = serde_json::from_str(&data).unwrap(); //todo
 
     //change and write data
     let entries = parsed.get_mut("entries").unwrap();
