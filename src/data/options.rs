@@ -28,3 +28,6 @@ impl Options{ //todo defaultvalues for me for testing
     }
 
 }
+pub fn get_ritobin_path(options: &Options) -> String{
+    format!(r"{}\0WADS\ritobin_cli.exe", options.get_project_path())
+}
