@@ -30,8 +30,6 @@ impl HashFile{
     /// The HashMap of the file
     pub(crate) fn load(&mut self, sender:&Sender<WorkerMessage>) -> Result<&FxHashMap<u64, Box<str>>, Box<dyn std::error::Error>> {
         if self.hashes.is_empty(){
-            // open and read file line by line with a bufread
-            // then put that into the hashmap
             let file = File::open(&self.filename).inspect_err(|e|{ log(sender, format!("Could not open file: {}", e))})?;
             let mut reader = BufReader::new(file);
 
