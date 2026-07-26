@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path};
 use std::process::Command;
 use std::sync::mpsc::Sender;
 use rayon::prelude::*;
@@ -9,7 +9,7 @@ use crate::data::options::{get_ritobin_path, Options};
 pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
     let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion);
     let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect();
-
+    //todo ideally only convert the files we need
     files.into_par_iter().for_each(|entry| {
         let entry_result = entry;
         if entry_result.is_ok() {
@@ -48,22 +48,29 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
     Ok(())
 }
 /// uses ritobin to convert a json file to a bin file
-pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let bin_path = format!(r"D:\wad5\{}\data\characters\{}\skins", champion_parent, champion);
+pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo also only convert files we need
+    let json_path = format!(r"{}\0WADS\data\characters\{}\skins", options.get_project_path(), champion);
 
-    for entry in fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Could not read directory: {}", e))})? {
+    let output_path = format!(r"{}\{}.wad.client\data\characters\{}\skins", options.get_project_path(), champion_parent, champion);
+    fs::create_dir_all(&output_path).inspect_err(|e| {log(sender, format!("Could not create output directory: {}", e))})?;
+
+    for entry in fs::read_dir(&json_path).inspect_err(|e| {log(sender, format!("Could not read directory: {}", e))})? {
         let entry = entry.inspect_err(|e| {log(sender, format!("Entry failed: {}", e))})?;
         let path = entry.path();
 
         if path.extension().and_then(|e| e.to_str()) == Some("json") {
-            let output_path: PathBuf = path.with_extension("bin"); //todo write to wad.client instead (vorher anlegen)
+
+            let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
+            let output_file = Path::new(&output_path)
+                .join(file_stem)
+                .with_extension("bin");
 
             let output = Command::new("cmd")
                 .args([
                     "/C",
                     &get_ritobin_path(options),
                     <&str>::try_from(path.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
-                    <&str>::try_from(output_path.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
+                    <&str>::try_from(output_file.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
                 ])
                 .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
             log(sender, format!("status: {}", output.status));
