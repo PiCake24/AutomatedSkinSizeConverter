@@ -14,18 +14,10 @@ impl Options{ //todo defaultvalues for me for testing
             ltk_path: r"C:\mods".to_string(),
         }
     }
-    pub fn get_project_path(&self) -> &str{
-        return &self.project_path
-    }
-    pub fn get_league_path(&self) -> &str{
-        return &self.league_path
-    }
-    pub fn get_cslol_path(&self) -> &str{
-        return &self.cslol_path
-    }
-    pub fn get_ltk_path(&self) -> &str{
-        return &self.ltk_path
-    }
+    pub fn get_project_path(&self) -> &str{ &self.project_path }
+    pub fn get_league_path(&self) -> &str{ &self.league_path }
+    pub fn get_cslol_path(&self) -> &str{ &self.cslol_path }
+    pub fn get_ltk_path(&self) -> &str{ &self.ltk_path }
 
 }
 pub fn get_ritobin_path(options: &Options) -> String{
