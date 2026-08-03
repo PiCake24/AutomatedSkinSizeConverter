@@ -16,7 +16,7 @@ pub fn wad_extract(option: &Options, sender:&Sender<WorkerMessage>, champion_par
     let mut hash_file = HashFile::new(format!(r"{}\0WADS\hashes\hashes.game.txt", option.get_project_path()));
 
 
-    let mut wad = Wad::new(sender, input_path, hash_file.load(sender)?)?; //todo?
+    let mut wad = Wad::new(sender, input_path, hash_file.load(sender)?)?;
     let pattern = Pattern::new("*data*skins/*")?; //todo can I optimise this?
     wad.files.retain(|f| pattern.matches(&f.path));
 

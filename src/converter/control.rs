@@ -44,7 +44,7 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
             //todo clean 0WADS/data
             wad_extract(options, sender, champion.get_name()).expect("TODO: panic message"); //todo
         }
-        champion = get_scale(champion);
+        get_scale(sender,options, &mut champion);
         bin_to_json(sender, options, champion.get_name()).expect("TODO: panic message"); //todo
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
@@ -118,7 +118,7 @@ fn get_parent(champion: String) -> String {
     champion
 }
 /// gets the scale for each skin of a champion
-pub fn get_scale(sender:&Sender<WorkerMessage>, champion:&mut Champion, option: Options)  {
+pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion)  {
     let path = format!(
         r"{}\0PutSizeOptionFilesHere\{}.txt",
         option.get_project_path(),

@@ -226,7 +226,7 @@ impl WadFileHeader{
         // except (json.JSONDecodeError, UnicodeDecodeError):
         //  pass
         //
-        // # others
+        // others
         // for prefix, ext in WadFileHeader._magic_numbers_ext.items():
         //  if data.startswith(prefix):
         //      return ext

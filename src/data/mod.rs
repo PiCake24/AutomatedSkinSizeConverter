@@ -1,2 +1,2 @@
 pub mod options;
-mod champion;
+pub mod champion;

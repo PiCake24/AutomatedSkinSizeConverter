@@ -4,16 +4,18 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
+use crate::converter::control::control;
 use crate::converter::main_gui::{log, WorkerMessage};
 
 /// reads a
 pub fn rescale_skins(sender:&Sender<WorkerMessage>, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
-    if champion == "lux" && skin == 7{
-        todo!()
-    } else if champion == "sona" && true{ //todo
+    if champion == "lux" && skin == 7 {
+        rescale_lux();
+        Ok(()) //todo
+    } else if champion == "sona" && skin == 6 {
+        // control(sender, options, download_files, "sonadjgenre01")
         todo!() //ist djsona nicht einfach djsona?
     } else {
-        //todo write into file
         rescale_normal(sender, champion, champion_parent, skin, scale)
     }
 }
@@ -83,3 +85,6 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
     }
 }
 
+fn rescale_lux(){ //todo
+    
+}
