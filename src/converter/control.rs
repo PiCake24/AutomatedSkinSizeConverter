@@ -84,7 +84,7 @@ fn get_champions() -> Vec<Champion>{
     champions
 }
 /// gets all skins for a Champion that does not have their skin-number defined
-fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion: Champion) -> Champion{
+fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion: Champion) -> Champion{ //todo make champion mutable + ref ig
     log(sender, "Getting number of skins");
     let mut number_of_consecutive_tries = 0;
     let mut number_of_skins = 0;
@@ -118,67 +118,63 @@ fn get_parent(champion: String) -> String {
     champion
 }
 /// gets the scale for each skin of a champion
-pub fn get_scale(mut champion: Champion) -> Champion {
-    const DEFAULT_SCALE: f32 = 2.0;
-
-    // Start with defaults
-    for skin in champion.get_skins_mut() {
-        skin.set_scale(DEFAULT_SCALE);
-    }
-
+pub fn get_scale(sender:&Sender<WorkerMessage>, champion:&mut Champion, option: Options)  {
     let path = format!(
-        r"D:\wad\0PutSizeOptionFilesHere\{}.txt",
+        r"{}\0PutSizeOptionFilesHere\{}.txt",
+        option.get_project_path(),
         champion.get_name()
     );
 
     let file = match File::open(path) {
         Ok(f) => f,
-        Err(_) => return champion,
+        Err(e) => {
+            log(sender, format!("Could not open file: {}", e));
+            return
+        },
     };
 
     let mut data = String::new();
 
-    if BufReader::new(file).read_to_string(&mut data).is_err() {
-        return champion;
+    if let Err(e) = BufReader::new(file).read_to_string(&mut data) {
+        log(sender, format!("Could not read file: {}", e));
+        return;
     }
 
-    let mut default = DEFAULT_SCALE;
+    let mut default :f32 = 2.0;
 
     for row in data.lines() {
         let parts: Vec<&str> = row.splitn(2, ':').collect();
 
         if parts.len() != 2 {
+            log(sender, format!("Entry malformed: {:?}", parts));
             continue;
         }
 
         let key = parts[0].trim();
         let value: f32 = match parts[1].trim().parse() {
             Ok(v) => v,
-            Err(_) => continue,
+            Err(e) => { log(sender, format!("Entry malformed (not a number): {}", e));
+                continue; },
         };
 
-        // Champion default value
-        if let Err(_) = key.parse::<u16>() {
-            default = value;
-            continue;
-        }
-
-        let skin_id: u16 = key.parse().unwrap();
-
-        for skin in champion.get_skins_mut() {
-            if skin.get_skin() == skin_id {
-                skin.set_scale(value);
+        match key.parse::<u16>() {
+            Ok(skin_id) => {
+                for skin in champion.get_skins_mut() {
+                    if skin.get_skin() == skin_id {
+                        skin.set_scale(value);
+                        skin.set_changed();
+                    }
+                }
             }
+            Err(_) => default = value,
         }
     }
 
     // Apply default champion scale to skins without explicit values
     for skin in champion.get_skins_mut() {
-        if skin.get_scale() == 2.0 {
+        if !skin.get_changed() {
             skin.set_scale(default);
         }
     }
-
-    champion
 }
 

@@ -29,14 +29,23 @@ impl Champion {
 #[derive(Debug)]
 pub struct SkinScale {
     skin: u16,
-    scale: f32
+    scale: f32,
+    changed: bool
 }
 impl SkinScale{
     pub(crate) fn new(skin: u16) -> SkinScale {
         Self {
             skin,
             scale: 2.0,
+            changed: false
         }
+    }
+
+    pub fn set_changed(&mut self){
+        self.changed = true
+    }
+    pub fn get_changed(&self)-> bool{
+        self.changed
     }
 
     pub fn get_skin(&self) -> u16 {
