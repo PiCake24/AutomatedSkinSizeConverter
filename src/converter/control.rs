@@ -36,17 +36,20 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
         if champion.get_skins().is_empty(){
             champion = get_all_skins(sender, options, champion);
         }
-        let champion_parent = get_parent(champion.get_name());
+        let champion_parent = get_parent(champion.get_name().to_owned());
         // todo if no max skin set
-        let max_skin = map.get(&champion).unwrap(); //todo
+        // let max_skin = map.get(&champion).unwrap(); //todo
 
         if download_files{
             //todo clean 0WADS/data
             wad_extract(options, sender, champion.get_name()).expect("TODO: panic message"); //todo
         }
+        champion = get_scale(champion);
         bin_to_json(sender, options, champion.get_name()).expect("TODO: panic message"); //todo
-        for skin_number in 0..*map.get(&champion).unwrap(){ // todo maybe implement a more sophisticated way of doing it
-            rescale_skins(sender, champion.get_name(), &champion_parent, skin_number, get_scale(champion.get_name(), skin_number)); //todo edgecases lux, sona
+        for skin in champion.get_skins(){
+            let skin_number = skin.get_skin();
+            let scale = skin.get_scale();
+            rescale_skins(sender, champion.get_name(), &champion_parent, skin_number, scale);
         }
         //todo clean .wad.client folders
         json_to_bin(sender, options, champion.get_name(), &champion_parent).expect("TODO: panic message");
@@ -84,7 +87,7 @@ fn get_champions() -> Vec<Champion>{
 fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion: Champion) -> Champion{
     log(sender, "Getting number of skins");
     let mut number_of_consecutive_tries = 0;
-    let mut number_of_skins = 0; //todo iterate ovr vec
+    let mut number_of_skins = 0;
     while number_of_consecutive_tries < 50 {
         let path_string = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.bin", options.get_project_path(), champion.get_name(), number_of_consecutive_tries);
         let path = Path::new(&path_string);
@@ -98,46 +101,84 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion:
     }
     // subtract the 51 skins again that do not exist
     number_of_skins -= 51;
-    log(sender, format!("{}", number_of_skins)); //todo improve log
+    log(sender, format!("Number of skins for {}: {}",champion.get_name(), number_of_skins));
 
     let all_skins: Vec<_> = (0..number_of_skins).collect();
-    champion.set_skins(all_skins);
+    for skin in 0..number_of_skins{
+        champion.add_skins(skin)
+    }
     champion
 }
 /// extracts the Champion parent of a Champion
 /// swaindemonform for example should return swain
-fn get_parent(champion: &str) -> &str {
+/// topaz_swain should also return swain
+fn get_parent(champion: String) -> String {
     // todo!()
     //der Champion befindet sich normalerweise immer ganz am anfang oder ganz am ende, also müsste man zweimal iterativ drübergehen?
     champion
 }
-/// todo
-// todo maybe I have to rework some stuff, so it doesnt crash when file does not exist :/
-pub fn get_scale(champion : &str, number : u16) -> f32 {
+/// gets the scale for each skin of a champion
+pub fn get_scale(mut champion: Champion) -> Champion {
+    const DEFAULT_SCALE: f32 = 2.0;
+
+    // Start with defaults
+    for skin in champion.get_skins_mut() {
+        skin.set_scale(DEFAULT_SCALE);
+    }
+
+    let path = format!(
+        r"D:\wad\0PutSizeOptionFilesHere\{}.txt",
+        champion.get_name()
+    );
+
+    let file = match File::open(path) {
+        Ok(f) => f,
+        Err(_) => return champion,
+    };
+
     let mut data = String::new();
-    let path_to_file = format!("{}{}{}", r"D:\wad\0PutSizeOptionFilesHere\", champion, ".txt");
-    let f = File::open(path_to_file).expect("There is no size options file"); //todo
-    let mut br = BufReader::new(f);
-    br.read_to_string(&mut data).expect("Should be able to read to string"); //todo
-    let mut default:f32 = 2.0;
 
-    let rows: Vec<&str> = data.split("\r\n").collect();
+    if BufReader::new(file).read_to_string(&mut data).is_err() {
+        return champion;
+    }
 
-    for row in rows {
-        let key_value: Vec<&str> = row.splitn(2, ":").collect();
-        let key: Result<u16, _> = key_value.get(0).unwrap().trim().parse();
-        let mut value: Result<f32, _> = key_value.get(1).unwrap().trim().parse();
+    let mut default = DEFAULT_SCALE;
 
-        if value.is_ok() {
-            if key.is_ok() {
-                if key.unwrap() == number {
-                    return value.unwrap()
-                }
-            } else {
-                default = value.unwrap();
+    for row in data.lines() {
+        let parts: Vec<&str> = row.splitn(2, ':').collect();
+
+        if parts.len() != 2 {
+            continue;
+        }
+
+        let key = parts[0].trim();
+        let value: f32 = match parts[1].trim().parse() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+
+        // Champion default value
+        if let Err(_) = key.parse::<u16>() {
+            default = value;
+            continue;
+        }
+
+        let skin_id: u16 = key.parse().unwrap();
+
+        for skin in champion.get_skins_mut() {
+            if skin.get_skin() == skin_id {
+                skin.set_scale(value);
             }
         }
     }
-    default
+
+    // Apply default champion scale to skins without explicit values
+    for skin in champion.get_skins_mut() {
+        if skin.get_scale() == 2.0 {
+            skin.set_scale(default);
+        }
+    }
+
+    champion
 }
 
