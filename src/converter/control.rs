@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read, Write};
@@ -18,7 +17,7 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
     //todo create project dir
     //todo read options actually
     unpack_ritobin(options);
-    let mut champions = get_champions();
+    let champions = get_champions();
     if download_files {
         if download_hashes(options, sender).is_ok(){
             log(sender, "Hashes downloaded and written successfully");
@@ -34,7 +33,7 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
 
     for mut champion in champions{
         if champion.get_skins().is_empty(){
-            champion = get_all_skins(sender, options, champion);
+            get_all_skins(sender, options, &mut champion);
         }
         let champion_parent = get_parent(champion.get_name().to_owned());
         // todo if no max skin set
@@ -49,7 +48,7 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
             let scale = skin.get_scale();
-            rescale_skins(sender, champion.get_name(), &champion_parent, skin_number, scale);
+            rescale_skins(sender, champion.get_name(), &champion_parent, skin_number, scale).expect("TODO: panic message");
         }
         //todo clean .wad.client folders
         json_to_bin(sender, options, champion.get_name(), &champion_parent).expect("TODO: panic message");
@@ -84,7 +83,7 @@ fn get_champions() -> Vec<Champion>{
     champions
 }
 /// gets all skins for a Champion that does not have their skin-number defined
-fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion: Champion) -> Champion{ //todo make champion mutable + ref ig
+fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) {
     log(sender, "Getting number of skins");
     let mut number_of_consecutive_tries = 0;
     let mut number_of_skins = 0;
@@ -103,19 +102,27 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, mut champion:
     number_of_skins -= 51;
     log(sender, format!("Number of skins for {}: {}",champion.get_name(), number_of_skins));
 
-    let all_skins: Vec<_> = (0..number_of_skins).collect();
     for skin in 0..number_of_skins{
         champion.add_skins(skin)
     }
-    champion
 }
 /// extracts the Champion parent of a Champion
 /// swaindemonform for example should return swain
 /// topaz_swain should also return swain
 fn get_parent(champion: String) -> String {
-    // todo!()
-    //der Champion befindet sich normalerweise immer ganz am anfang oder ganz am ende, also müsste man zweimal iterativ drübergehen?
-    champion
+    //prefix
+    if champion.contains("_"){
+        let parent = champion.split("_");
+        return parent.collect::<Vec<&str>>()[1].to_string()
+    }
+    let champion_parent = &champion;
+    let file_path = &format!(r"D:\Riot Games\League of Legends\Game\DATA\FINAL\Champions\{}.wad.client",
+                             champion_parent);
+    let result = fs::exists(Path::new(file_path));
+    if !result.unwrap(){
+        return get_parent(champion.split_at(champion.len()-1).0.to_string())
+    }
+    champion_parent.to_string()
 }
 /// gets the scale for each skin of a champion
 pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion)  {
