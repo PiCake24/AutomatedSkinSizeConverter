@@ -1,6 +1,7 @@
+use std::collections::HashSet;
 use std::fs;
 use std::fs::File;
-use std::io::{BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
 use std::sync::mpsc::Sender;
 use crate::converter::skin_rescaler::rescale_skins;
@@ -10,14 +11,14 @@ use crate::cdtb::hashes::download_hashes;
 use crate::converter::export::{export_cslol, export_ltk};
 use crate::converter::main_gui::{log, WorkerMessage};
 use crate::data::options::{get_ritobin_path, Options};
-use crate::data::champion::Champion;
+use crate::data::champion::{Champion, SkinScale};
 
 /// todo
 pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
     //todo create project dir
     //todo read options actually
     unpack_ritobin(options);
-    let champions = get_champions();
+    let champions = get_champions(sender, options, current_set );
     if download_files {
         if download_hashes(options, sender).is_ok(){
             log(sender, "Hashes downloaded and written successfully");
@@ -43,7 +44,7 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
             //todo clean 0WADS/data
             wad_extract(options, sender, champion.get_name()).expect("TODO: panic message"); //todo
         }
-        get_scale(sender,options, &mut champion);
+        get_scale(sender,options, &mut champion, current_set);
         bin_to_json(sender, options, champion.get_name()).expect("TODO: panic message"); //todo
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
@@ -73,15 +74,61 @@ fn unpack_ritobin(options: &Options){
     }
 }
 /// reads from options.txt which champions and which skins to convert
-fn get_champions() -> Vec<Champion>{
-    let mut champions = Vec::new();
-    champions.push(Champion::new("ahri"));
-    //todo also write skins array
+fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Vec<Champion>{
+    let mut champions:Vec<Champion> = Vec::new();
+    let f = File::open(format!(r"{}\0PutSizeOptionFilesHere\{}\0Options.txt", options.get_project_path(), current_set)).unwrap(); //todo
 
-    // let mut map:HashMap<String, u16> = HashMap::new();
-    // map.insert("ahri".to_string(), 0);
+    let br = BufReader::new(&f);
+
+    for line in br.lines(){
+        let result = line.unwrap();
+
+
+        let (champion_name, skins) = match result.split_once(' ') {
+            Some((first, second)) => (first.to_string(), second.to_string()),
+            None => (result.to_string(), String::new())
+        };
+        let mut champion = Champion::new(&champion_name);
+        champion.set_skins(parse_skins(&skins));
+        champions.push(champion);
+    }
+    println!("{:?}", champions);
+    panic!();
     champions
 }
+
+fn parse_skins(skins: &String) -> Vec<SkinScale> {
+    let skins = skins.trim();
+    if skins.is_empty() {
+        //todo log
+        return Vec::new();
+    }
+    let mut set: HashSet<u16> = HashSet::new();
+
+    for part in skins.split('|') {
+        let part = part.trim();
+        if part.is_empty() {
+            //todo log
+            continue;
+        }
+        match part.split_once('-') {
+            Some((start, end)) => {
+                let start: u16 = start.trim().parse().expect("invalid range start"); //todo
+                let end: u16 = end.trim().parse().expect("invalid range end"); //todo
+                for n in start..=end {
+                    set.insert(n);
+                }
+            }
+            None => {
+                let n: u16 = part.parse().expect("invalid skin number"); //todo
+                set.insert(n);
+            }
+        }
+    }
+
+    set.into_iter().map(SkinScale::new).collect()
+}
+
 /// gets all skins for a Champion that does not have their skin-number defined
 fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) {
     log(sender, "Getting number of skins");
@@ -125,10 +172,11 @@ fn get_parent(champion: String) -> String {
     champion_parent.to_string()
 }
 /// gets the scale for each skin of a champion
-pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion)  {
+pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion, current_set: &str)  {
     let path = format!(
-        r"{}\0PutSizeOptionFilesHere\{}.txt",
+        r"{}\0PutSizeOptionFilesHere\{}\{}.txt",
         option.get_project_path(),
+        current_set,
         champion.get_name()
     );
 
