@@ -14,11 +14,11 @@ use crate::data::options::{get_ritobin_path, Options};
 use crate::data::champion::{Champion, SkinScale};
 
 /// todo
-pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
-    //todo create project dir
-    //todo read options actually
+pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
+    let options = &read_options();
+    create_project_dir();
     unpack_ritobin(options);
-    let champions = get_champions(sender, options, current_set );
+    let champions = get_champions(sender, options, current_set ).unwrap(); //todo
     if download_files {
         if download_hashes(options, sender).is_ok(){
             log(sender, "Hashes downloaded and written successfully");
@@ -33,18 +33,17 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
 
 
     for mut champion in champions{
+
         if champion.get_skins().is_empty(){
             get_all_skins(sender, options, &mut champion);
         }
         let champion_parent = get_parent(champion.get_name().to_owned());
-        // todo if no max skin set
-        // let max_skin = map.get(&champion).unwrap(); //todo
-
         if download_files{
             //todo clean 0WADS/data
             wad_extract(options, sender, champion.get_name()).expect("TODO: panic message"); //todo
         }
         get_scale(sender,options, &mut champion, current_set);
+        //todo folgendes in eigene Methode?, abgesehen von den exports
         bin_to_json(sender, options, champion.get_name()).expect("TODO: panic message"); //todo
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
@@ -62,6 +61,14 @@ pub fn control(sender:&Sender<WorkerMessage>, options: &Options, download_files:
         }
     }
 }
+/// reads options.txt and returns the path values
+fn read_options()-> Options{
+    //todo
+    Options::new()
+}
+fn create_project_dir(){
+    //todo
+}
 static EMBEDDED_EXE: &[u8] = include_bytes!("../../resources/ritobin_cli.exe");
 /// unpacks ritobin into the 0WADS directory in the project directory
 fn unpack_ritobin(options: &Options){
@@ -74,59 +81,56 @@ fn unpack_ritobin(options: &Options){
     }
 }
 /// reads from options.txt which champions and which skins to convert
-fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Vec<Champion>{
+fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<Vec<Champion>, Box<dyn std::error::Error>>{
     let mut champions:Vec<Champion> = Vec::new();
-    let f = File::open(format!(r"{}\0PutSizeOptionFilesHere\{}\0Options.txt", options.get_project_path(), current_set)).unwrap(); //todo
+    let f = File::open(format!(r"{}\0PutSizeOptionFilesHere\{}\0Options.txt", options.get_project_path(), current_set)).inspect_err(|e| {log(sender, format!("Options file in set does not exist: {}", e))})?;
 
     let br = BufReader::new(&f);
 
     for line in br.lines(){
-        let result = line.unwrap();
-
+        let result = line.inspect_err(|e| {log(sender, format!("Could not read line: {}", e))})?;
 
         let (champion_name, skins) = match result.split_once(' ') {
             Some((first, second)) => (first.to_string(), second.to_string()),
             None => (result.to_string(), String::new())
         };
         let mut champion = Champion::new(&champion_name);
-        champion.set_skins(parse_skins(&skins));
+        champion.set_skins(parse_skins(sender, &skins)?);
         champions.push(champion);
     }
-    println!("{:?}", champions);
-    panic!();
-    champions
+    Ok(champions)
 }
 
-fn parse_skins(skins: &String) -> Vec<SkinScale> {
+fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinScale>, Box<dyn std::error::Error>> {
     let skins = skins.trim();
     if skins.is_empty() {
-        //todo log
-        return Vec::new();
+        log(sender, "No skin for champion selected, selecting all skins");
+        return Ok(Vec::new());
     }
     let mut set: HashSet<u16> = HashSet::new();
 
     for part in skins.split('|') {
         let part = part.trim();
         if part.is_empty() {
-            //todo log
+            log(sender, "Missing range. The program continues. Check your options file.");
             continue;
         }
         match part.split_once('-') {
             Some((start, end)) => {
-                let start: u16 = start.trim().parse().expect("invalid range start"); //todo
-                let end: u16 = end.trim().parse().expect("invalid range end"); //todo
+                let start: u16 = start.trim().parse().inspect_err(|e| {log(sender, format!("Invalid range start: {}", e))})?;
+                let end: u16 = end.trim().parse().inspect_err(|e| {log(sender, format!("Invalid range end: {}", e))})?;
                 for n in start..=end {
                     set.insert(n);
                 }
             }
             None => {
-                let n: u16 = part.parse().expect("invalid skin number"); //todo
+                let n: u16 = part.parse().inspect_err(|e| {log(sender, format!("Invalid skin number: {}", e))})?;
                 set.insert(n);
             }
         }
     }
 
-    set.into_iter().map(SkinScale::new).collect()
+    Ok(set.into_iter().map(SkinScale::new).collect())
 }
 
 /// gets all skins for a Champion that does not have their skin-number defined
