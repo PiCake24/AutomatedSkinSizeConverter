@@ -13,7 +13,7 @@ use crate::converter::main_gui::{log, WorkerMessage};
 use crate::data::options::{get_ritobin_path, Options};
 use crate::data::champion::{Champion, SkinScale};
 
-/// todo
+/// main control flow
 pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
     let options = &read_options();
     create_project_dir();
@@ -26,11 +26,11 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             if Path::new(&get_ritobin_path(options)).exists(){
                 log(sender, "Using old hashes")
             } else{
+                log(sender, "No hashes available, stopping");
                 return //todo error + log
             }
         }
     }
-
 
     for mut champion in champions{
 
@@ -57,17 +57,38 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             export_cslol(&champion_parent);
         }
         if export_ltk_checkbox{
-            export_ltk(&champion_parent);
+            export_ltk(options, &champion_parent);
         }
     }
 }
 /// reads options.txt and returns the path values
-fn read_options()-> Options{
-    //todo
-    Options::new()
+fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
+    let f = File::open("Options.txt").unwrap();
+    // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
+    let br = BufReader::new(&f);
+
+    let mut project_path = String::new();
+    let mut league_path = String::new();
+    let mut cslol_path = String::new();
+    let mut ltk_path = String::new();
+
+    for line in br.lines() {
+        let line = line.unwrap();
+        if line.starts_with("Root Path:"){
+            project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+        } else if line.starts_with("League Path:") {
+            league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+        } else if line.starts_with("CsLol Path:") {
+            cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+        } else if line.starts_with("Ltk Path:") {
+            ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+        }
+    }
+    Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path)
 }
-fn create_project_dir(){
-    //todo
+/// todo
+fn create_project_dir(){ //for beta: not my problem
+    //todo erstelle project dir. aber wenn project dir noch nicht exisitert müssen wir danach auch aborten wenn wir es erstellt haben
 }
 static EMBEDDED_EXE: &[u8] = include_bytes!("../../resources/ritobin_cli.exe");
 /// unpacks ritobin into the 0WADS directory in the project directory
@@ -100,7 +121,12 @@ fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: 
     }
     Ok(champions)
 }
-
+/// reads the skins string. Each skin will only get created once, even when overlapping ranges
+/// there is no limit to how many ranges/skins you can add
+/// 1-4 returns 1,2,3,4
+/// 2 returns 2
+/// 1-3|6 returns 1,2,3,6
+/// nothing returns nothing
 fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinScale>, Box<dyn std::error::Error>> {
     let skins = skins.trim();
     if skins.is_empty() {

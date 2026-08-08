@@ -20,7 +20,7 @@ impl BinaryParser {
         // Single bounds check, then a direct copy — no trait dispatch, no loop
         let slice = &self.data[self.pos..self.pos + N];
         self.pos += N;
-        slice.try_into().expect("slice length mismatch")
+        slice.try_into().expect("slice length mismatch") //todo
     }
 
     /// Reads a dynamic number of bytes into a Vec
