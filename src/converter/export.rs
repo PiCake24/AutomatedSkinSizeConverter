@@ -58,7 +58,7 @@ fn create_meta(option: &Options, champion_parent: &str){
 }
 
 fn copy_mod_files(option: &Options, champion_parent: &str){
-    let source = Path::new(option.get_project_path()).join(champion_parent);
+    let source = Path::new(option.get_project_path()).join(format!("{}.wad.client", champion_parent ));
     let destination = Path::new(option.get_project_path()).join(format!("{}.wad.client",champion_parent)).join("WAD").join(format!("{}.wad.client",champion_parent));
     //todo important: check whether path worked
     for file in WalkDir::new(&source) {
@@ -70,7 +70,7 @@ fn copy_mod_files(option: &Options, champion_parent: &str){
 
         if !file.file_type().is_dir() {
             if let Some(parent) = destination_path.parent() {
-                fs::create_dir_all(parent).unwrap(); //todo
+                create_dir_all(parent).unwrap(); //todo
             }
             fs::copy(source_path, &destination_path).unwrap(); //todo
         }
