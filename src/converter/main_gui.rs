@@ -229,16 +229,16 @@ impl AutomatedSkinSizeConverter{
 
                  // todo read own options first, if they exist dont change anything
                  // todo change this to reading options.txt, asking for rest
-                ui.heading("No Options.txt in the current directory detected. Do you want to create a new one and also add the paths?");
+                ui.heading("No Options.txt in the current directory detected. Do you want to create a new one and also add the paths? (Not implemented yet, use your old options)");
                 ui.separator();
                 ui.add_space(8.0);
                 //todo felder fuer options, // todo check if each needed value is set
                 ui.horizontal(|ui| {
-                    if ui.button("Confirm").clicked() {
-                        File::create_new(options_file).inspect_err(|e| { log(&Self::get_sender(), "Could not create file") }).expect("TODO: panic message"); //todo
-                        //todo dann file befuellen
-                        self.state = AppState::CheckSets
-                    }
+                    // if ui.button("Confirm").clicked() {
+                    //     File::create_new(options_file).inspect_err(|e| { log(&Self::get_sender(), "Could not create file") }).expect("TODO: panic message"); //todo
+                    //     //todo dann file befuellen
+                    //     self.state = AppState::CheckSets
+                    // }
                     if ui.button("Cancel (this closes the application)").clicked() {
                         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                     }

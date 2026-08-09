@@ -110,14 +110,15 @@ fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: 
 
     for line in br.lines(){
         let result = line.inspect_err(|e| {log(sender, format!("Could not read line: {}", e))})?;
-
-        let (champion_name, skins) = match result.split_once(' ') {
-            Some((first, second)) => (first.to_string(), second.to_string()),
-            None => (result.to_string(), String::new())
-        };
-        let mut champion = Champion::new(&champion_name);
-        champion.set_skins(parse_skins(sender, &skins)?);
-        champions.push(champion);
+        if !result.starts_with("#"){
+            let (champion_name, skins) = match result.split_once(' ') {
+                Some((first, second)) => (first.to_string(), second.to_string()),
+                None => (result.to_string(), String::new())
+            };
+            let mut champion = Champion::new(&champion_name);
+            champion.set_skins(parse_skins(sender, &skins)?);
+            champions.push(champion);
+        }
     }
     Ok(champions)
 }

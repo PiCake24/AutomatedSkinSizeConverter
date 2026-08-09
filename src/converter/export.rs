@@ -47,11 +47,11 @@ fn create_folders(option: &Options, champion_parent: &str){
 fn create_meta(option: &Options, champion_parent: &str){
     let mut file = File::create(format!(r"{}\{}.wad.client\META\info.json", option.get_project_path(), champion_parent)).expect("Could not create info.json"); //todo
     let text = format!(r#"{{
-    "Author": "UNKNOWN",
+    "Author": "AutomatedSkinSizeConverter",
     "Description": "",
     "Heart": "",
     "Home": "",
-    "Name": "Supermod {}",
+    "Name": "Giant {}",
     "Version": "1.0"
 }}"#, champion_parent);
     file.write(text.as_ref()).expect("Could not write info.json"); //todo
@@ -119,20 +119,20 @@ fn zip_dir(option: &Options, champion_parent: &str) {
 /// Rename the zip to fantom and move it to the ltk mod folder
 fn rename_and_move(option: &Options, champion_parent: &str){
     let source = format!(r"{}\{}.wad.client.zip", option.get_project_path(), champion_parent);
-    let destination = format!(r"{}\archives\Supermod {}.fantome", option.get_ltk_path() ,champion_parent); //todo path
+    let destination = format!(r"{}\archives\Giant {}.fantome", option.get_ltk_path() ,champion_parent); //todo path
     fs::copy(&source, &destination).unwrap(); //todo
     fs::remove_file(&source).unwrap(); //todo
 }
 fn create_ltk_mod_config(option: &Options, champion_parent: & str){
-    create_dir_all(format!(r"{}\mods\Supermod {}", option.get_ltk_path(), champion_parent)).expect("TODO: panic message"); //todo
-    let mut file = File::create(format!(r"{}\mods\Supermod {}\mod.config.json", option.get_ltk_path(), champion_parent)).expect("Could not create info.json"); //todo
+    create_dir_all(format!(r"{}\mods\Giant {}", option.get_ltk_path(), champion_parent)).expect("TODO: panic message"); //todo
+    let mut file = File::create(format!(r"{}\mods\Giant {}\mod.config.json", option.get_ltk_path(), champion_parent)).expect("Could not create info.json"); //todo
     let text =  format!(r#"{{
-  "name": "supermod-{}",
-  "display_name": "Supermod {}",
+  "name": "giant-{}",
+  "display_name": "Giant {}",
   "version": "1.0",
   "description": "",
   "authors": [
-    "UNKNOWN"
+    "AutomatedSkinSizeConverter"
   ],
   "layers": [
     {{
@@ -156,7 +156,7 @@ fn modify_library(option: &Options, champion_parent: & str){
     // mods:
     let mods = parsed.get_mut("mods").unwrap(); //todo
     let array = mods.as_array_mut().unwrap(); //todo
-    let key = format!("Supermod {}", champion_parent);
+    let key = format!("Giant {}", champion_parent);
 
     let now: DateTime<Utc> = Utc::now();
     let timestamp = now.format("%Y-%m-%dT%H:%M:%S%.9fZ").to_string();
@@ -168,7 +168,7 @@ fn modify_library(option: &Options, champion_parent: & str){
     }
     else {
         // Add new entry
-        let id = format!("Supermod {}", champion_parent);
+        let id = format!("Giant {}", champion_parent);
 
 
         let new_entry = json!({
@@ -183,7 +183,7 @@ fn modify_library(option: &Options, champion_parent: & str){
     //folders:
     let array = &mut parsed.get_mut("folders").unwrap().as_array_mut().unwrap(); //todo
 
-    let new_mod_id = format!("Supermod {}", champion_parent);
+    let new_mod_id = format!("Giant {}", champion_parent);
 
     if let Some(root) = array.iter_mut().find(|e| e["id"] == "root") {
         if let Some(mod_ids) = root["modIds"].as_array_mut() {
@@ -208,7 +208,7 @@ fn remove_overlay(option: &Options, champion_parent: & str){
 
     let enabled = parsed.get_mut("enabledMods").unwrap(); //todo
     let array = enabled.as_array_mut().unwrap(); //todo
-    let key = format!("Supermod {}", champion_parent);
+    let key = format!("Giant {}", champion_parent);
 
     array.retain(|v| v.as_str() != Some(key.as_str()));
 
