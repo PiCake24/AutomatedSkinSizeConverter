@@ -8,7 +8,7 @@ use crate::data::options::{get_ritobin_path, Options};
 /// uses ritobin to convert multiple bin files at the same time into a json file
 pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
     let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion);
-    let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect();
+    let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect(); //todo hier crashsts bei mir
     //todo ideally only convert the files we need
     files.into_par_iter().for_each(|entry| {
         let entry_result = entry;
@@ -18,13 +18,13 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
             if filepath_result.is_ok() {
                 let filepath = filepath_result.unwrap();
                 if filepath.ends_with(".bin") && filepath != "root.bin" {
-                    bin_to_json_single(sender, options, &bin_path, &filepath).unwrap();
+                    bin_to_json_single(sender, options, &bin_path, &filepath).unwrap(); //todo
                 }
             } else {
-                log(sender, format!("Filepath error: {}", filepath_result.unwrap()))
+                log(sender, format!("Filepath error: {}", filepath_result.unwrap())) //todo
             }
         } else {
-            log(sender, format!("Entry error: {:?}", entry_result.unwrap()))
+            log(sender, format!("Entry error: {:?}", entry_result.unwrap())) //todo
         }
 });
     Ok(())

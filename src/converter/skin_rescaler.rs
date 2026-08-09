@@ -6,25 +6,27 @@ use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
 use crate::converter::control::control;
 use crate::converter::main_gui::{log, WorkerMessage};
+use crate::data::options::Options;
 
 /// reads a
-pub fn rescale_skins(sender:&Sender<WorkerMessage>, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
+pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
     if champion == "lux" && skin == 7 {
         rescale_lux();
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
+        Ok(())
         // control(sender, options, download_files, "sonadjgenre01")
-        todo!() //ist djsona nicht einfach djsona?
+        // todo!() //ist djsona nicht einfach djsona?
     } else {
-        rescale_normal(sender, champion, champion_parent, skin, scale)
+        rescale_normal(sender,options, champion, champion_parent, skin, scale)
     }
 }
 
-fn rescale_normal(sender:&Sender<WorkerMessage>, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
-    let filepath = format!(r"D:\wad5\{}\data\characters\{}\skins\skin{}.json", champion_parent, champion, skin);
+fn rescale_normal(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
+    let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.json", options.get_project_path(), champion, skin);
 
     let mut data = String::new();
-    let f = File::open(&filepath).inspect_err(|e| { log(sender, format!("Could not open file: {}", e)) })?;
+    let f = File::open(&filepath).inspect_err(|e| { log(sender, format!("Could not open file: {}, {}", &filepath, e)) })?;
     let mut br = BufReader::new(&f);
     br.read_to_string(&mut data).inspect_err(|e| { log(sender, format!("Could not read data: {}", e)) })?;
     let mut parsed: Value = serde_json::from_str(&data).inspect_err(|e| { log(sender, format!("Could convert data to json: {}", e)) })?;

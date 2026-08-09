@@ -27,7 +27,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 log(sender, "Using old hashes")
             } else{
                 log(sender, "No hashes available, stopping");
-                return //todo error + log
+                return //todo error
             }
         }
     }
@@ -48,7 +48,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
             let scale = skin.get_scale();
-            rescale_skins(sender, champion.get_name(), &champion_parent, skin_number, scale).expect("TODO: panic message");
+            rescale_skins(sender, options, champion.get_name(), &champion_parent, skin_number, scale).expect("Panic in rescale");
         }
         //todo clean .wad.client folders
         json_to_bin(sender, options, champion.get_name(), &champion_parent).expect("TODO: panic message");
@@ -59,6 +59,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if export_ltk_checkbox{
             export_ltk(options, &champion_parent);
         }
+        log(sender, "Completed")
     }
 }
 /// reads options.txt and returns the path values
@@ -164,10 +165,13 @@ fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinS
 fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) {
     log(sender, "Getting number of skins");
     let mut number_of_consecutive_tries = 0;
-    let mut number_of_skins = 0;
+    let mut number_of_skins:u16 = 0;
     while number_of_consecutive_tries < 50 {
-        let path_string = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.bin", options.get_project_path(), champion.get_name(), number_of_consecutive_tries);
+        let path_string = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.bin", options.get_project_path(), champion.get_name(), number_of_skins);
         let path = Path::new(&path_string);
+        println!("{}", number_of_skins);
+        println!("{}", number_of_consecutive_tries);
+        // println!()
         if !path.exists() {
             number_of_consecutive_tries += 1;
             number_of_skins += 1;
