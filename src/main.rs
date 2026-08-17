@@ -17,6 +17,8 @@ use crate::data::options::Options;
 // todo documentation
 // todo check every file for warnings and errors and remove them
 // todo replace strings with paths
+// todo block ui when program is working
+// todo improve error logs even more
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions::default();
     eframe::run_native("My egui App", options, Box::new(

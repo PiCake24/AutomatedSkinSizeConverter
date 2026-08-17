@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fs;
-use std::fs::File;
+use std::fs::{read, File, read_to_string};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
 use std::sync::mpsc::Sender;
@@ -34,13 +34,13 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
 
     for mut champion in champions{
 
-        if champion.get_skins().is_empty(){
-            get_all_skins(sender, options, &mut champion);
-        }
-        let champion_parent = get_parent(champion.get_name().to_owned());
+        let champion_parent = get_parent(options, champion.get_name().to_owned());
         if download_files{
             //todo clean 0WADS/data
-            wad_extract(options, sender, champion.get_name()).expect("TODO: panic message"); //todo
+            wad_extract(options, sender, &champion_parent).expect("TODO: panic message"); //todo
+        }
+        if champion.get_skins().is_empty(){
+            get_all_skins(sender, options, &mut champion);
         }
         get_scale(sender,options, &mut champion, current_set);
         //todo folgendes in eigene Methode?, abgesehen von den exports
@@ -111,7 +111,7 @@ fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: 
 
     for line in br.lines(){
         let result = line.inspect_err(|e| {log(sender, format!("Could not read line: {}", e))})?;
-        if !result.starts_with("#"){
+        if !result.starts_with("#") && !result.contains("Scale"){
             let (champion_name, skins) = match result.split_once(' ') {
                 Some((first, second)) => (first.to_string(), second.to_string()),
                 None => (result.to_string(), String::new())
@@ -163,7 +163,7 @@ fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinS
 
 /// gets all skins for a Champion that does not have their skin-number defined
 fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) {
-    log(sender, "Getting number of skins");
+    log(sender, format!("Getting number of skins for {}", champion.get_name()));
     let mut number_of_consecutive_tries = 0;
     let mut number_of_skins:u16 = 0;
     while number_of_consecutive_tries < 50 {
@@ -191,18 +191,21 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
 /// extracts the Champion parent of a Champion
 /// swaindemonform for example should return swain
 /// topaz_swain should also return swain
-fn get_parent(champion: String) -> String {
+fn get_parent(options: &Options, champion: String) -> String {
     //prefix
     if champion.contains("_"){
         let parent = champion.split("_");
+        // println!("{:?}", &parent.collect::<Vec<&str>>()[1]);
+        // todo!();
         return parent.collect::<Vec<&str>>()[1].to_string()
     }
     let champion_parent = &champion;
-    let file_path = &format!(r"D:\Riot Games\League of Legends\Game\DATA\FINAL\Champions\{}.wad.client",
+    let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
+                             options.get_league_path(),
                              champion_parent);
     let result = fs::exists(Path::new(file_path));
     if !result.unwrap(){
-        return get_parent(champion.split_at(champion.len()-1).0.to_string())
+        return get_parent(options,champion.split_at( champion.len()-1).0.to_string())
     }
     champion_parent.to_string()
 }
@@ -218,7 +221,8 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
     let file = match File::open(path) {
         Ok(f) => f,
         Err(e) => {
-            log(sender, format!("Could not open file: {}", e));
+            log(sender, format!("Could not open file: {}, reading 0Options.txt", e));
+            get_default_scale(sender, option, champion, current_set); //todo actually only do this when file doesnt exist
             return
         },
     };
@@ -266,5 +270,35 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
             skin.set_scale(default);
         }
     }
+}
+///if champfile doesnt exist read mainfile
+fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion,current_set: &str){
+
+    let path = Path::new(option.get_project_path())
+        .join("0PutSizeOptionFilesHere")
+        .join(current_set).join("0Options.txt");
+    let a = read_to_string(path).expect("TODO: panic message"); //todo
+
+    for line in a.lines(){
+        if line.contains("Scale:"){
+            let parts: Vec<&str> = line.splitn(2, ':').collect();
+
+            if parts.len() != 2 {
+                log(sender, format!("Entry malformed: {:?}", parts));
+                continue;
+            }
+            let value: f32 = match parts[1].trim().parse() {
+                Ok(v) => v,
+                Err(e) => { log(sender, format!("Entry malformed (not a number): {}", e));
+                    continue; },
+            };
+
+            for skin in champion.get_skins_mut() {
+                skin.set_scale(value);
+            }
+            return
+        }
+    }
+
 }
 
