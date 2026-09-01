@@ -1,25 +1,29 @@
+use crate::cdtb;
 use crate::converter::control::control;
+use crate::data::options::Options;
+use eframe::egui::Ui;
+use eframe::{Frame, egui};
 use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::Path;
-use eframe::egui::{Context, Ui};
-use eframe::{egui, Frame};
+use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::{fs, thread};
-use std::io::{BufRead, BufReader};
-use std::process::Command;
-use crate::cdtb;
-use crate::data::options::Options;
 
 #[derive(Default)]
 enum AppState {
-
-    VersionCheck,
     #[default]
-    CheckFile,
+    VersionCheck,
+    CheckOptionFile,
     CheckSets,
     Running,
+    Options
 }
 
+enum WorkType{
+    Convert,
+    DownloadHashes
+}
 #[derive(Default)]
 pub struct AutomatedSkinSizeConverter {
     state: AppState,
@@ -41,14 +45,13 @@ pub enum WorkerMessage {
     Done,
 }
 impl eframe::App for AutomatedSkinSizeConverter {
-    fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         match self.state {
-            AppState::VersionCheck => (),
-            AppState::CheckFile => self.check_options(ui),
+            AppState::VersionCheck => self.state = AppState::CheckOptionFile, //todo
+            AppState::CheckOptionFile => self.check_options(ui),
+            AppState::CheckSets => self.check_sets(), //todo perhaps
             AppState::Running => self.main_ui(ui),
-            AppState::CheckSets => (
-                self.check_sets()
-            ),
+            AppState::Options => self.options(), //todo perhaps
         }
     }
 }
@@ -81,15 +84,15 @@ impl AutomatedSkinSizeConverter{
         let is_busy = self.worker.is_some();
         //***********************
 
-        egui::Panel::top("my_panel").show_inside(ui, |ui| { //todo deprecated
+        egui::Panel::top("my_panel").show(ui, |ui| {
             ui.add_enabled_ui(!is_busy, |ui| {
                 ui.horizontal(|ui| {
                     if ui.button("Options").clicked() {
-                        // todo open UI for options IG
+                        self.state = AppState::Options;
                     }
                     ui.label("Set:");
                     egui::ComboBox::from_id_salt("SetOption")
-                        .selected_text(format!("{:?}", self.selected1))
+                        .selected_text(format!("{}", &self.selected1))
                         .show_ui(ui, |ui| {
                             for radio_item in self.sets.iter() {
                                 ui.selectable_value(
@@ -100,9 +103,9 @@ impl AutomatedSkinSizeConverter{
                             }
                         });
 
-                    // if ui.button("Create new Set").clicked() {
-                    //     self.show_create_set = true;
-                    // }
+                    if ui.button("Create new Set").clicked() {
+                        self.show_create_set = true;
+                    }
                     if ui.button("Open current set in explorer").clicked(){
                         println!("{}", format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()));
                         Command::new("explorer")
@@ -112,60 +115,26 @@ impl AutomatedSkinSizeConverter{
                     }
 
                     if ui.button("Download hashes").clicked() {
-                        //***********************
-                        let (sender, receiver) = mpsc::channel();
-                        self.worker = Some(receiver);
-
-                        let ctx = ui.ctx().clone();  // needed to trigger repaints from the thread
-                        let options = self.options.clone();
-
-                        thread::spawn(move || { //todo move this to its own fn
-                            log(&sender, "Starting download...");
-
-
-                            if cdtb::hashes::download_hashes(&options, &sender).is_ok(){
-                                log(&sender, "Hashes downloaded and written successfully");
-                            }
-
-                            ctx.request_repaint();  // wake the UI when done
-
-                        });
-                        //***********************
+                        self.work(ui, WorkType::DownloadHashes)
                     }
 
                 });
             });
         });
-        egui::CentralPanel::default().show_inside(ui, |ui| { //todo fuck
+        egui::CentralPanel::default().show(ui, |ui| {
+            ui.add_enabled_ui(!is_busy, |ui| { //todo?
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut self.download_files, "Download Files");
+                    ui.checkbox(&mut self.export_cslol, "Export to cslol");
+                    ui.checkbox(&mut self.export_ltk, "Export to ltk");
 
-            ui.horizontal(|ui| {
-                ui.checkbox(&mut self.download_files, "Download Files");
-                ui.checkbox(&mut self.export_cslol, "Export to cslol");
-                ui.checkbox(&mut self.export_ltk, "Export to ltk");
+                    // todo button clear log
 
-                // todo button clear log
-
-                if ui.button("Start Conversion").clicked() {
-                    let (sender, receiver) = mpsc::channel();
-                    self.worker = Some(receiver);
-
-                    let ctx = ui.ctx().clone();
-                    let options = self.options.clone();
-                    let download_files = self.download_files.clone();
-                    let export_cslol = self.export_cslol.clone();
-                    let export_ltk = self.export_ltk.clone();
-
-                    thread::spawn(move || { //todo move this to its own fn
-
-                        control(&sender, download_files, export_cslol, export_ltk, "default"); //todo change set
-
-                        ctx.request_repaint();  // wake the UI when done
-
-                    });
-
-                }
+                    if ui.button("Start Conversion").clicked() {
+                        self.work(ui, WorkType::Convert);
+                    }
+                });
             });
-
             ui.separator();
             //***********************
             let row_height = ui.text_style_height(&egui::TextStyle::Body);
@@ -216,12 +185,54 @@ impl AutomatedSkinSizeConverter{
             self.show_create_set = false;
         }
     }
-    fn options(){
-        //todo modal for options
+    fn work(&mut self, ui: &mut Ui, work_type :WorkType){
+        let (sender, receiver) = mpsc::channel();
+        self.worker = Some(receiver);
+        let ctx = ui.ctx().clone();
+
+        match work_type {
+            WorkType::DownloadHashes => {
+                  // needed to trigger repaints from the thread
+                let options = self.options.clone();
+                thread::spawn(move | | {
+                    log(&sender, "Starting download...");
+
+
+                    if cdtb::hashes::download_hashes(&options, &sender).is_ok(){
+                        log(&sender, "Hashes downloaded and written successfully");
+                    }
+                    sender.send(WorkerMessage::Done);
+                    ctx.request_repaint();  // wake the UI when done
+
+                });
+            },
+            WorkType::Convert => {
+
+                let options = self.options.clone();
+                let download_files = self.download_files.clone();
+                let export_cslol = self.export_cslol.clone();
+                let export_ltk = self.export_ltk.clone();
+
+                thread::spawn(move || {
+                    control(&sender, download_files, export_cslol, export_ltk, "default"); //todo change set
+                    sender.send(WorkerMessage::Done);
+                    ctx.request_repaint();  // wake the UI when done
+
+                });
+            }
+        }
+        //***********************
+
+    }
+    fn options(&mut self){
+        //todo change ui to options ui
         //modify file
     }
-    fn check_options(&mut self, ui: &Ui){
-        println!("check options");
+    fn check_version(){
+        //todo
+    }
+    fn check_options(&mut self,ui: &mut Ui){
+        println!("check options"); //todo
         let options_file = Path::new("Options.txt");
         if !options_file.exists(){
              egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
@@ -348,10 +359,6 @@ impl AutomatedSkinSizeConverter{
     //     vec!("Default".to_string());
     //     //check if set folders exist, if yes, load them, if no create default one
     //     //when creating default one copy files into it
-    }
-    fn get_sender() -> Sender<WorkerMessage>{
-        let (sender, receiver) = mpsc::channel();
-        sender
     }
 }
 pub fn log(sender: &Sender<WorkerMessage>, msg: impl Into<String>) {
