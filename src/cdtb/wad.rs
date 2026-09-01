@@ -207,17 +207,19 @@ impl WadFileHeader{
     /// static
     fn guess_extension(sender:&Sender<WorkerMessage>, data: Vec<u8>)-> String{
         // def guess_extension(data):
-        // # image type
-        let typ = imghdr::from_bytes(data);
         // typ = imghdr.what(None, h=data)
-        if typ.unwrap() == Type::Jpeg{ //todo
-            return "jpg".to_string()
-        } else if typ.unwrap() == Type::Xbm { //todo
-            // pass
-        } else if typ.is_some() {
-            let mut s = format!("{:?}", typ);
-            s.make_ascii_lowercase();
-            return s
+        let typ = imghdr::from_bytes(&data);
+        // typ = imghdr.what(None, h=data)
+        if let Some(t) = typ {
+            if t == Type::Jpeg {
+                return "jpg".to_string();
+            } else if t == Type::Xbm {
+                // pass
+            } else {
+                let mut s = format!("{:?}", t);
+                s.make_ascii_lowercase();
+                return s;
+            }
         }
         // # json //todo
         // try:
