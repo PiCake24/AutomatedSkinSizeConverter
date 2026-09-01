@@ -162,7 +162,7 @@ fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinS
 }
 
 /// gets all skins for a Champion that does not have their skin-number defined
-fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) {
+fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) { //todo this is shit. just read which files there are
     log(sender, format!("Getting number of skins for {}", champion.get_name()));
     let mut number_of_consecutive_tries = 0;
     let mut number_of_skins:u16 = 0;
@@ -171,7 +171,7 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
         let path = Path::new(&path_string);
         println!("{}", number_of_skins);
         println!("{}", number_of_consecutive_tries);
-        // println!()
+
         if !path.exists() {
             number_of_consecutive_tries += 1;
             number_of_skins += 1;

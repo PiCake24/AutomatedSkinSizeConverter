@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{Path};
-use std::process::Command;
+use std::process::{Command, ExitStatus, Output};
 use std::sync::mpsc::Sender;
 use rayon::prelude::*;
 use crate::converter::main_gui::{log, WorkerMessage};
@@ -41,10 +41,11 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
             &old_name,
             &new_name])
         .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
-    log(sender, format!("status: {}", output.status));
-    // println!("status: {}", output.status);
-    // println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-    // println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    if output.status.success() {
+        log(sender, format!("Successful converted {} to json", filename));
+    } else{
+        log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+    }
     Ok(())
 }
 /// uses ritobin to convert a json file to a bin file
@@ -73,10 +74,11 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
                     <&str>::try_from(output_file.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
                 ])
                 .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
-            log(sender, format!("status: {}", output.status));
-            // println!("status: {}", output.status);
-            // println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-            // println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+            if output.status.success() {
+                log(sender, format!("Successful converted {} to bin", json_path));
+            } else{
+                log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+            }
         }
     }
     Ok(())
