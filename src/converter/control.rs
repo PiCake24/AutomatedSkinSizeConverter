@@ -1,9 +1,11 @@
 use std::collections::HashSet;
 use std::fs;
-use std::fs::{read, File, read_to_string};
+use std::fs::{File, read_to_string};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
+use rayon::prelude::*;
 use std::sync::mpsc::Sender;
+use regex::Regex;
 use crate::converter::skin_rescaler::rescale_skins;
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::cdtb::cdtb::wad_extract;
@@ -57,7 +59,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             export_cslol(&champion_parent);
         }
         if export_ltk_checkbox{
-            export_ltk(options, &champion_parent);
+            export_ltk(sender, options, &champion_parent);
         }
         log(sender, "Completed")
     }
@@ -162,31 +164,28 @@ fn parse_skins(sender:&Sender<WorkerMessage>,skins: &String) -> Result<Vec<SkinS
 }
 
 /// gets all skins for a Champion that does not have their skin-number defined
-fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) { //todo this is shit. just read which files there are
+fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mut Champion) -> Result<(), Box<dyn std::error::Error>>{
     log(sender, format!("Getting number of skins for {}", champion.get_name()));
-    let mut number_of_consecutive_tries = 0;
-    let mut number_of_skins:u16 = 0;
-    while number_of_consecutive_tries < 50 {
-        let path_string = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.bin", options.get_project_path(), champion.get_name(), number_of_skins);
-        let path = Path::new(&path_string);
-        println!("{}", number_of_skins);
-        println!("{}", number_of_consecutive_tries);
+    let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\", options.get_project_path(), champion.get_name());
 
-        if !path.exists() {
-            number_of_consecutive_tries += 1;
-            number_of_skins += 1;
-        } else {
-            number_of_skins += 1;
-            number_of_consecutive_tries = 0;
-        }
-    }
-    // subtract the 51 skins again that do not exist
-    number_of_skins -= 51;
-    log(sender, format!("Number of skins for {}: {}",champion.get_name(), number_of_skins));
+    let entries = fs::read_dir(&bin_path)
+        .inspect_err(|e| log(sender, format!("Error while reading work directory: {}", e)))?;
 
-    for skin in 0..number_of_skins{
-        champion.add_skins(skin)
+    let re = Regex::new(r"\d+").inspect_err(|e| log(sender, format!("Could not create number regex: {}", e)))?;
+
+    let skin_ids: Vec<u16> = entries
+        .par_bridge() // or collect first then into_par_iter, see note below
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .filter_map(|filename| re.find(&filename).and_then(|m| m.as_str().parse().ok()))
+        .collect();
+
+    for id in skin_ids {
+        champion.add_skins(id);
+        println!("{}", id);
     }
+
+    Ok(())
 }
 /// extracts the Champion parent of a Champion
 /// swaindemonform for example should return swain
