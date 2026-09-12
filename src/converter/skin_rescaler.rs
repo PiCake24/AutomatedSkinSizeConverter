@@ -33,7 +33,7 @@ fn rescale_normal(sender:&Sender<WorkerMessage>,options: &Options, champion:&str
 
     //change and write data
     let entries = parsed.get_mut("entries").ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "Missing entries item"))?;
-    traverse(sender, entries, vec![&format!("characters/{}/skins/skin{}",champion, skin), "skinmeshproperties","skinscale"].into(), scale)?;
+    traverse(sender, entries, vec![&format!("characters/{}/skins/skin{}",champion, skin), "skinmeshproperties","skinscale"].into(), scale, champion, skin)?;
     fs::write(&filepath, serde_json::to_string_pretty(&parsed).inspect_err(|e| { log(sender, format!("Could create string: {}", e)) })?).inspect_err(|e| { log(sender, format!("Could not write to file: {}", e)) })?;
     Ok(())
 }
@@ -44,7 +44,7 @@ fn rescale_normal(sender:&Sender<WorkerMessage>,options: &Options, champion:&str
 /// * value: the json that should be traversed
 /// * path: the path that should get traversed
 /// + scale: the size increase of that Champion
-fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque<&str>, scale:f32) -> Result<(), Box<dyn std::error::Error>>{
+fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque<&str>, scale:f32,  champion:&str, skin: u16) -> Result<(), Box<dyn std::error::Error>>{
     let json_array = value["value"]["items"].as_array_mut().ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "Missing items array"))?;
     let key = path.pop_front();
     if key.is_none(){
@@ -59,7 +59,7 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
                     element["value"] = json!(scale);
                     return Ok(());
                 }
-                return traverse(sender, element, path, scale);
+                return traverse(sender, element, path, scale, champion, skin);
             }
         } else if element["key"].as_i64().is_some(){
             if element["key"].as_i64().unwrap().to_string() == key.unwrap() {
@@ -67,7 +67,7 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
                     element["value"] = json!(scale);
                     return Ok(());
                 }
-                return traverse(sender, element, path, scale);
+                return traverse(sender, element, path, scale, champion, skin);
             }
         }
     }
@@ -82,7 +82,7 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
         Ok(())
     } else{
         Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidData, "JSON not complete"
+            std::io::ErrorKind::InvalidData, format!("JSON not complete: {}, {}", champion, skin)
         ).into())
     }
 }
