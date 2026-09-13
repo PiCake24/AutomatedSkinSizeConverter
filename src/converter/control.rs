@@ -18,9 +18,8 @@ use crate::data::champion::{Champion, SkinScale};
 /// main control flow
 pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
     let options = &read_options();
-    create_project_dir();
     unpack_ritobin(options);
-    let champions = get_champions(sender, options, current_set ).unwrap(); //todo
+    let mut champions = get_champions(sender, options, current_set ).unwrap(); //todo
     if download_files {
         if download_hashes(options, sender).is_ok(){
             log(sender, "Hashes downloaded and written successfully");
@@ -34,11 +33,13 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         }
     }
 
-    for mut champion in champions{
+    for mut champion in &mut champions{
 
-        let champion_parent = get_parent(options, champion.get_name().to_owned());
+        let champion_parent = champion.get_parent();
+
         if download_files{
             //todo clean 0WADS/data
+            //todo also clean output folder in projects
             wad_extract(options, sender, &champion_parent).expect("TODO: panic message"); //todo
         }
         if champion.get_skins().is_empty(){
@@ -54,15 +55,18 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         }
         //todo clean .wad.client folders
         json_to_bin(sender, options, champion.get_name(), &champion_parent).expect("TODO: panic message");
-
+    }
+    for mut champion in &mut champions{
+        let champion_parent = champion.get_parent();
         if export_cslol_checkbox{
-            export_cslol(&champion_parent);
+            export_cslol(sender, options, &champion_parent);
         }
         if export_ltk_checkbox{
             export_ltk(sender, options, &champion_parent);
         }
-        log(sender, "Completed")
     }
+    // fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?; //todo cleanup
+    log(sender, "Completed") //todo timestamp
 }
 /// reads options.txt and returns the path values
 fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
@@ -75,25 +79,21 @@ fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
     let mut cslol_path = String::new();
     let mut ltk_path = String::new();
 
-    for line in br.lines() {
+    for line in br.lines() { //todo nach options auslagern
         let line = line.unwrap();
         if line.starts_with("Root Path:"){
-            project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            project_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
         } else if line.starts_with("League Path:") {
-            league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            league_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
         } else if line.starts_with("CsLol Path:") {
-            cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
         } else if line.starts_with("Ltk Path:") {
-            ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
         }
     }
     Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path)
 }
-/// todo
-fn create_project_dir(){ //for beta: not my problem
-    //todo erstelle project dir. aber wenn project dir noch nicht exisitert müssen wir danach auch aborten wenn wir es erstellt haben
-}
-static EMBEDDED_EXE: &[u8] = include_bytes!("../../resources/ritobin_cli.exe");
+static RITOBIN: &[u8] = include_bytes!("../../resources/ritobin_cli.exe");
 /// unpacks ritobin into the 0WADS directory in the project directory
 fn unpack_ritobin(options: &Options){
     //todo only create when version is not old (if there is no version, rebuild anyways and not down current version
@@ -101,7 +101,7 @@ fn unpack_ritobin(options: &Options){
     let path = Path::new(path_string);
     if !path.exists(){
         let mut file = File::create(path).unwrap();
-    file.write_all(EMBEDDED_EXE).unwrap();
+    file.write_all(RITOBIN).unwrap();
     }
 }
 /// reads from options.txt which champions and which skins to convert
@@ -118,7 +118,7 @@ fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: 
                 Some((first, second)) => (first.to_string(), second.to_string()),
                 None => (result.to_string(), String::new())
             };
-            let mut champion = Champion::new(&champion_name);
+            let mut champion = Champion::new(options, &champion_name);
             champion.set_skins(parse_skins(sender, &skins)?);
             champions.push(champion);
         }
@@ -190,24 +190,22 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
 /// extracts the Champion parent of a Champion
 /// swaindemonform for example should return swain
 /// topaz_swain should also return swain
-fn get_parent(options: &Options, champion: String) -> String {
-    //prefix
-    if champion.contains("_"){
-        let parent = champion.split("_");
-        // println!("{:?}", &parent.collect::<Vec<&str>>()[1]);
-        // todo!();
-        return parent.collect::<Vec<&str>>()[1].to_string()
-    }
-    let champion_parent = &champion;
-    let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
-                             options.get_league_path(),
-                             champion_parent);
-    let result = fs::exists(Path::new(file_path));
-    if !result.unwrap(){
-        return get_parent(options,champion.split_at( champion.len()-1).0.to_string())
-    }
-    champion_parent.to_string()
-}
+// fn get_parent(options: &Options, champion: String) -> String {
+//     //prefix
+//     if champion.contains("_"){
+//         let parent = champion.split("_");
+//         return parent.collect::<Vec<&str>>()[1].to_string()
+//     }
+//     let champion_parent = &champion;
+//     let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
+//                              options.get_league_path(),
+//                              champion_parent);
+//     let result = fs::exists(Path::new(file_path));
+//     if !result.unwrap(){ //todo this can crash if unwrap fails (also test viktor, vi)
+//         return get_parent(options,champion.split_at( champion.len()-1).0.to_string())
+//     }
+//     champion_parent.to_string()
+// }
 /// gets the scale for each skin of a champion
 pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion, current_set: &str)  {
     let path = format!(
@@ -272,7 +270,6 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
 }
 ///if champfile doesnt exist read mainfile
 fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion,current_set: &str){
-
     let path = Path::new(option.get_project_path())
         .join("0PutSizeOptionFilesHere")
         .join(current_set).join("0Options.txt");
@@ -291,13 +288,11 @@ fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&
                 Err(e) => { log(sender, format!("Entry malformed (not a number): {}", e));
                     continue; },
             };
-
             for skin in champion.get_skins_mut() {
                 skin.set_scale(value);
             }
             return
         }
     }
-
 }
 

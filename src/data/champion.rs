@@ -1,12 +1,18 @@
+use std::fs;
+use std::path::Path;
+use crate::data::options::Options;
+
 #[derive(Debug)]
 pub struct Champion {
     name: String,
+    parent: String,
     skins:Vec<SkinScale>
 }
 impl Champion {
-    pub(crate) fn new(name: &str) -> Champion{
+    pub(crate) fn new(options: &Options, name: &str) -> Champion{
         Self{
             name: name.to_string(),
+            parent: Self::set_parent(options, name.to_string()),
             skins: Vec::new(),
         }
     }
@@ -24,6 +30,24 @@ impl Champion {
     }
     pub fn get_skins_mut(&mut self) -> &mut Vec<SkinScale> {
         &mut self.skins
+    }
+
+    pub fn get_parent(&mut self)->String{self.parent.clone()}
+    fn set_parent(options: &Options, champion: String) -> String {
+        //prefix
+        if champion.contains("_"){
+            let parent = champion.split("_");
+            return parent.collect::<Vec<&str>>()[1].to_string()
+        }
+        let champion_parent = &champion;
+        let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
+                                 options.get_league_path(),
+                                 champion_parent);
+        let result = fs::exists(Path::new(file_path));
+        if !result.unwrap(){ //todo this can crash if unwrap fails (also test viktor, vi)
+            return Self::set_parent(options, champion.split_at( champion.len()-1).0.to_string())
+        }
+        champion_parent.to_string()
     }
 }
 #[derive(Debug)]

@@ -2,30 +2,59 @@ use std::fs;
 use std::fs::{create_dir_all, File};
 use std::io::{BufReader, Read, Write};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::mpsc::Sender;
 use chrono::{Utc, DateTime};
 use serde_json::{json, Value};
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use crate::converter::main_gui::{log, WorkerMessage};
-use crate::data::options::Options;
+use crate::data::options::{Options, get_wad_make_path};
 
-/// todo
-pub fn export_cslol(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    log(sender, "Creating WAD file");
-    create_wad_file();
+/// exports the mod to cslol
+pub fn export_cslol(sender:&Sender<WorkerMessage>, options: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+
     log(sender, "Creating cslol mod folder");
-    create_cslol_folder(sender, option, champion_parent)?; //todo logs
+    create_cslol_folder(sender, options, champion_parent)?;
     log(sender, "Creating META file");
-    create_cslol_meta(sender, option, champion_parent)?;
-    log(sender, "Moving mod");
-    move_wad_archive();
+    create_cslol_meta(sender, options, champion_parent)?;
+    log(sender, "Creating WAD file");
+    create_wad_file(sender, options, champion_parent)?;
     log(sender, "Exported to cslol");
     Ok(())
 }
-///uses wadmake to create a new wad archive
-fn create_wad_file(){
-    todo!()
+///uses wad_make to create a new wad archive
+fn create_wad_file(sender:&Sender<WorkerMessage>, options: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+    unpack_wad_make(sender, options)?;
+    let filename = format!(r"{}\{}.wad.client", options.get_project_path(), champion_parent);
+    let destination = format!(r"{}\installed\giant {}\WAD\{}.wad.client", options.get_cslol_path(), champion_parent, champion_parent);
+    let output = Command::new("cmd")
+        .args(["/C",
+            &get_wad_make_path(options),
+            &filename,
+            &destination
+        ])
+        .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
+    if output.status.success() {
+        log(sender, format!("Successfully converted wad folder to file {}", filename));
+    } else{
+        log(sender, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
+        ).into())
+    }
+    Ok(())
+}
+static WAD_MAKE: &[u8] = include_bytes!("../../resources/wad-make.exe");
+//unpacks wad-make
+fn unpack_wad_make(sender:&Sender<WorkerMessage>, options: &Options) -> Result<(), Box<dyn std::error::Error>>{
+    let path_string = &get_wad_make_path(options);
+    let path = Path::new(path_string);
+    if !path.exists(){
+        let mut file = File::create(path).inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
+        file.write_all(WAD_MAKE).inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
+    }
+    Ok(())
 }
 /// creates needed folders in cslol directory
 fn create_cslol_folder(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
@@ -50,14 +79,10 @@ fn create_cslol_meta(sender:&Sender<WorkerMessage>, option: &Options, champion_p
     file.write_all(text.as_ref()).inspect_err(|e| {log(sender, format!("Could not write into info.json: {}", e))})?;
     Ok(())
 }
-/// moves the wad archive to the mod folder in cslol
-fn move_wad_archive(){
-    todo!()
-}
 /// exports the mod to ltk
 pub fn export_ltk(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
     log(sender, "Creating Folder");
-    create_proejct_folders(sender, option, champion_parent)?;
+    create_project_folders(sender, option, champion_parent)?;
     log(sender, "Creating Meta");
     create_meta(sender, option, champion_parent)?;
     log(sender, "Copy Mod Files");
@@ -76,7 +101,7 @@ pub fn export_ltk(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
     Ok(())
 }
 /// creates needed folders
-fn create_proejct_folders(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+fn create_project_folders(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
     create_dir_all(format!(r"{}\0WADS\{}.wad.client\META",option.get_project_path(), champion_parent))
         .inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
     create_dir_all(format!(r"{}\0WADS\{}.wad.client\WAD\{}.wad.client",option.get_project_path(), champion_parent, champion_parent))
@@ -136,7 +161,14 @@ fn zip_dir(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &st
 
     let mut buffer = Vec::new();
 
-    for entry in WalkDir::new(folder_path).into_iter().filter_map(|e| e.ok()) {
+    for entry in WalkDir::new(folder_path) {
+        let entry = entry.inspect_err(|e| {
+            log(sender, format!(
+                "Could not read an entry while creating archive {:?}: {}",
+                folder_path, e
+            ))
+        })?;
+
         let path = entry.path();
         let name = path.strip_prefix(folder_path).inspect_err(|e| {log(sender, format!("No prefix in file {:?}: {}", path, e))})?;
 
@@ -161,12 +193,11 @@ fn zip_dir(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &st
     Ok(())
 }
 
-/// Rename the zip to fantom and move it to the ltk mod folder
+/// Rename the zip to fantome and move it to the ltk mod folder
 fn rename_and_move(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
     let source = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion_parent);
-    let destination = format!(r"{}\archives\Giant {}.fantome", option.get_ltk_path() ,champion_parent);
+    let destination = format!(r"{}\mods\Giant {}.fantome", option.get_ltk_path() ,champion_parent);
     fs::copy(&source, &destination).inspect_err(|e| {log(sender, format!("Could not copy zip {:?}: {}", source, e))})?;
-    fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?;
     Ok(())
 }
 //creates the config file ltk needs
@@ -224,7 +255,9 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
         let new_entry = json!({
                 "id": id,
                 "installedAt": timestamp,
-                "format": "fantome"
+                "format": "fantome",
+                "storage": "archive",
+                "slug": id
             });
         array.push(new_entry);
     }

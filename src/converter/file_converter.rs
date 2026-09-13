@@ -45,6 +45,9 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
         log(sender, format!("Successful converted {} to json", filename));
     } else{
         log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
+        ).into())
     }
     Ok(())
 }
@@ -78,6 +81,9 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
                 log(sender, format!("Successful converted {} to bin", json_path));
             } else{
                 log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
+                ).into())
             }
         }
     }
