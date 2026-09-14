@@ -28,44 +28,64 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 log(sender, "Using old hashes")
             } else{
                 log(sender, "No hashes available, stopping");
-                return //todo error
+                return //todo throw error
             }
         }
     }
 
-    for mut champion in &mut champions{
+    'champion: for mut champion in &mut champions{
 
         let champion_parent = champion.get_parent();
+        let name = champion.get_name();
 
         if download_files{
             //todo clean 0WADS/data
             //todo also clean output folder in projects
-            wad_extract(options, sender, &champion_parent).expect("TODO: panic message"); //todo
+            wad_extract(options, sender, &champion_parent).expect("TODO: panic message"); //todo actually just return and throw error
         }
         if champion.get_skins().is_empty(){
-            get_all_skins(sender, options, &mut champion);
+            if get_all_skins(sender, options, &mut champion).is_err(){
+                champion.abort();
+                continue
+            }
         }
         get_scale(sender,options, &mut champion, current_set);
         //todo folgendes in eigene Methode?, abgesehen von den exports
-        bin_to_json(sender, options, champion.get_name()).expect("TODO: panic message"); //todo
+        if bin_to_json(sender, options, &name).is_err(){
+            champion.abort();
+            continue
+        }
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
             let scale = skin.get_scale();
-            rescale_skins(sender, options, champion.get_name(), &champion_parent, skin_number, scale).expect("Panic in rescale");
+            if rescale_skins(sender, options, &name, &champion_parent, skin_number, scale).is_err(){
+                champion.abort();
+                continue 'champion;
+            }
         }
-        //todo clean .wad.client folders
-        json_to_bin(sender, options, champion.get_name(), &champion_parent).expect("TODO: panic message");
-    }
-    for mut champion in &mut champions{
-        let champion_parent = champion.get_parent();
-        if export_cslol_checkbox{
-            export_cslol(sender, options, &champion_parent);
-        }
-        if export_ltk_checkbox{
-            export_ltk(sender, options, &champion_parent);
+        if json_to_bin(sender, options, &name, &champion_parent).is_err(){
+            champion.abort();
+            continue
         }
     }
-    // fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?; //todo cleanup
+    for champion in &mut champions{
+        if !champion.get_abort(){
+            let champion_parent = champion.get_parent();
+            if export_cslol_checkbox{
+                if export_cslol(sender, options, &champion_parent).is_err(){
+                    continue
+                }
+
+            }
+            if export_ltk_checkbox{
+                if export_ltk(sender, options, &champion_parent).is_err(){
+                    continue
+                };
+
+            }
+        }
+    }
+    // fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?; //todo cleanup folders
     log(sender, "Completed") //todo timestamp
 }
 /// reads options.txt and returns the path values

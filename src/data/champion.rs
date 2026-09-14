@@ -6,7 +6,8 @@ use crate::data::options::Options;
 pub struct Champion {
     name: String,
     parent: String,
-    skins:Vec<SkinScale>
+    skins:Vec<SkinScale>,
+    aborted: bool
 }
 impl Champion {
     pub(crate) fn new(options: &Options, name: &str) -> Champion{
@@ -14,10 +15,11 @@ impl Champion {
             name: name.to_string(),
             parent: Self::set_parent(options, name.to_string()),
             skins: Vec::new(),
+            aborted: false
         }
     }
-    pub fn get_name(&self) -> &str{
-        &self.name
+    pub fn get_name(&self) -> String{
+        self.name.clone()
     }
     pub fn set_skins(&mut self, skins: Vec<SkinScale>){
         self.skins = skins;
@@ -48,6 +50,12 @@ impl Champion {
             return Self::set_parent(options, champion.split_at( champion.len()-1).0.to_string())
         }
         champion_parent.to_string()
+    }
+    pub fn abort(&mut self){
+        self.aborted = true
+    }
+    pub fn get_abort(&mut self) -> bool{
+        self.aborted
     }
 }
 #[derive(Debug)]
