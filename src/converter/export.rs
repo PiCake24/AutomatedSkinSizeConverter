@@ -12,22 +12,22 @@ use crate::converter::main_gui::{log, WorkerMessage};
 use crate::data::options::{Options, get_wad_make_path};
 
 /// exports the mod to cslol
-pub fn export_cslol(sender:&Sender<WorkerMessage>, options: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+pub fn export_cslol(sender:&Sender<WorkerMessage>, options: &Options, champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
 
     log(sender, "Creating cslol mod folder");
-    create_cslol_folder(sender, options, champion_parent)?;
+    create_cslol_folder(sender, options, champion)?;
     log(sender, "Creating META file");
-    create_cslol_meta(sender, options, champion_parent)?;
+    create_cslol_meta(sender, options, champion)?;
     log(sender, "Creating WAD file");
-    create_wad_file(sender, options, champion_parent)?;
+    create_wad_file(sender, options, champion_parent, champion)?;
     log(sender, "Exported to cslol");
     Ok(())
 }
 ///uses wad_make to create a new wad archive
-fn create_wad_file(sender:&Sender<WorkerMessage>, options: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+fn create_wad_file(sender:&Sender<WorkerMessage>, options: &Options, champion_parent: &str, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
     unpack_wad_make(sender, options)?;
     let filename = format!(r"{}\{}.wad.client", options.get_project_path(), champion_parent);
-    let destination = format!(r"{}\installed\giant {}\WAD\{}.wad.client", options.get_cslol_path(), champion_parent, champion_parent);
+    let destination = format!(r"{}\installed\giant {}\WAD\{}.wad.client", options.get_cslol_path(), champion, champion_parent);
     let output = Command::new("cmd")
         .args(["/C",
             &get_wad_make_path(options),
@@ -57,16 +57,16 @@ fn unpack_wad_make(sender:&Sender<WorkerMessage>, options: &Options) -> Result<(
     Ok(())
 }
 /// creates needed folders in cslol directory
-fn create_cslol_folder(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    create_dir_all(format!(r"{}\installed\giant {}\WAD", option.get_cslol_path(), champion_parent))
+fn create_cslol_folder(sender:&Sender<WorkerMessage>, option: &Options, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    create_dir_all(format!(r"{}\installed\giant {}\WAD", option.get_cslol_path(), champion))
         .inspect_err(|e| {log(sender, format!("Could not create WAD folder: {}", e))})?;
-    create_dir_all(format!(r"{}\installed\giant {}\META", option.get_cslol_path(), champion_parent))
+    create_dir_all(format!(r"{}\installed\giant {}\META", option.get_cslol_path(), champion))
         .inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
     Ok(())
 }
 /// creates meta file for cslol mod
-fn create_cslol_meta(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let mut file = File::create(format!(r"{}\installed\giant {}\META\info.json", option.get_cslol_path(), champion_parent))
+fn create_cslol_meta(sender:&Sender<WorkerMessage>, option: &Options, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let mut file = File::create(format!(r"{}\installed\giant {}\META\info.json", option.get_cslol_path(), champion))
         .inspect_err(|e| {log(sender, format!("Could not create info.json: {}", e))})?;
     let text = format!(r#"{{
     "Author": "AutomatedSkinSizeConverter",
@@ -75,42 +75,42 @@ fn create_cslol_meta(sender:&Sender<WorkerMessage>, option: &Options, champion_p
     "Home": "",
     "Name": "Giant {}",
     "Version": "1.0"
-}}"#, champion_parent);
+}}"#, champion);
     file.write_all(text.as_ref()).inspect_err(|e| {log(sender, format!("Could not write into info.json: {}", e))})?;
     Ok(())
 }
 /// exports the mod to ltk
-pub fn export_ltk(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
+pub fn export_ltk(sender:&Sender<WorkerMessage>, option: &Options, champion:&str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
     log(sender, "Creating Folder");
-    create_project_folders(sender, option, champion_parent)?;
+    create_project_folders(sender, option, champion_parent, champion)?;
     log(sender, "Creating Meta");
-    create_meta(sender, option, champion_parent)?;
+    create_meta(sender, option, champion)?;
     log(sender, "Copy Mod Files");
-    copy_mod_files(sender, option, champion_parent)?;
+    copy_mod_files(sender, option, champion_parent, champion)?;
     log(sender, "Zip Folder");
-    zip_dir(sender, option, champion_parent)?;
+    zip_dir(sender, option, champion)?;
     log(sender, "Moving zip");
-    rename_and_move(sender, option, champion_parent)?;
+    rename_and_move(sender, option, champion)?;
     log(sender, "Create mod config");
-    create_ltk_mod_config(sender, option, champion_parent)?;
+    create_ltk_mod_config(sender, option, champion)?;
     log(sender, "Modifying ltk library");
-    modify_library(sender, option, champion_parent)?;
+    modify_library(sender, option, champion)?;
     log(sender, "Removing mod from overlay");
-    remove_overlay(sender, option, champion_parent)?;
+    remove_overlay(sender, option, champion)?;
     log(sender, "Exported to ltk");
     Ok(())
 }
 /// creates needed folders
-fn create_project_folders(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    create_dir_all(format!(r"{}\0WADS\{}.wad.client\META",option.get_project_path(), champion_parent))
+fn create_project_folders(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    create_dir_all(format!(r"{}\0WADS\{}.wad.client\META",option.get_project_path(), champion))
         .inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
-    create_dir_all(format!(r"{}\0WADS\{}.wad.client\WAD\{}.wad.client",option.get_project_path(), champion_parent, champion_parent))
+    create_dir_all(format!(r"{}\0WADS\{}.wad.client\WAD\{}.wad.client",option.get_project_path(), champion, champion_parent))
         .inspect_err(|e| {log(sender, format!("Could not create WAD folder: {}", e))})?;
     Ok(())
 }
 /// creates META json
-fn create_meta(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let mut file = File::create(format!(r"{}\0WADS\{}.wad.client\META\info.json", option.get_project_path(), champion_parent))
+fn create_meta(sender:&Sender<WorkerMessage>, option: &Options, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let mut file = File::create(format!(r"{}\0WADS\{}.wad.client\META\info.json", option.get_project_path(), champion))
         .inspect_err(|e| {log(sender, format!("Could not create info.json: {}", e))})?;
     let text = format!(r#"{{
     "Author": "AutomatedSkinSizeConverter",
@@ -119,15 +119,15 @@ fn create_meta(sender:&Sender<WorkerMessage>, option: &Options, champion_parent:
     "Home": "",
     "Name": "Giant {}",
     "Version": "1.0"
-}}"#, champion_parent);
+}}"#, champion);
     file.write_all(text.as_ref()).inspect_err(|e| {log(sender, format!("Could not write into info.json: {}", e))})?;
     Ok(())
 }
 ///copies the mod files to the 0WADS folder
-fn copy_mod_files(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let source = Path::new(option.get_project_path()).join(format!("{}.wad.client", champion_parent ));
+fn copy_mod_files(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let source = Path::new(option.get_project_path()).join(format!("{}.wad.client", champion));
     let destination = Path::new(option.get_project_path()).join("0WADS")
-        .join(format!("{}.wad.client",champion_parent)).join("WAD").join(format!("{}.wad.client",champion_parent));
+        .join(format!("{}.wad.client",champion)).join("WAD").join(format!("{}.wad.client",champion_parent));
     for file in WalkDir::new(&source) {
         let file = file.inspect_err(|e| {log(sender, format!("File does not exist: {}", e))})?;
         let source_path = file.path();
@@ -146,8 +146,8 @@ fn copy_mod_files(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
     Ok(())
 }
 /// creates a zip that contains all files from the mod
-fn zip_dir(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let folder = format!(r"{}\0WADS\{}.wad.client", option.get_project_path(), champion_parent);
+fn zip_dir(sender:&Sender<WorkerMessage>, option: &Options, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let folder = format!(r"{}\0WADS\{}.wad.client", option.get_project_path(), champion);
     let folder_path = Path::new(&folder);
 
     let zip_path = PathBuf::from(format!("{}.zip", folder));
@@ -194,18 +194,18 @@ fn zip_dir(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &st
 }
 
 /// Rename the zip to fantome and move it to the ltk mod folder
-fn rename_and_move(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let source = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion_parent);
-    let destination = format!(r"{}\mods\Giant {}.fantome", option.get_ltk_path() ,champion_parent);
+fn rename_and_move(sender:&Sender<WorkerMessage>, option: &Options, champion: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let source = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion);
+    let destination = format!(r"{}\mods\Giant {}.fantome", option.get_ltk_path() ,champion);
     fs::copy(&source, &destination).inspect_err(|e| {log(sender, format!("Could not copy zip {:?}: {}", source, e))})?;
     Ok(())
 }
 //creates the config file ltk needs
-fn create_ltk_mod_config(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: & str) -> Result<(), Box<dyn std::error::Error>>{
-    create_dir_all(format!(r"{}\mods\Giant {}", option.get_ltk_path(), champion_parent))
-        .inspect_err(|e| {log(sender, format!("Could not create dir for {:?}: {}", champion_parent, e))})?;
-    let mut file = File::create(format!(r"{}\mods\Giant {}\mod.config.json", option.get_ltk_path(), champion_parent))
-        .inspect_err(|e| {log(sender, format!("Could not create config file for {:?}: {}", champion_parent, e))})?;
+fn create_ltk_mod_config(sender:&Sender<WorkerMessage>, option: &Options, champion: & str) -> Result<(), Box<dyn std::error::Error>>{
+    create_dir_all(format!(r"{}\mods\Giant {}", option.get_ltk_path(), champion))
+        .inspect_err(|e| {log(sender, format!("Could not create dir for {:?}: {}", champion, e))})?;
+    let mut file = File::create(format!(r"{}\mods\Giant {}\mod.config.json", option.get_ltk_path(), champion))
+        .inspect_err(|e| {log(sender, format!("Could not create config file for {:?}: {}", champion, e))})?;
     let text =  format!(r#"{{
   "name": "giant-{}",
   "display_name": "Giant {}",
@@ -221,12 +221,12 @@ fn create_ltk_mod_config(sender:&Sender<WorkerMessage>, option: &Options, champi
       "description": "Base layer of the mod"
     }}
   ]
-}}"#, champion_parent, champion_parent);
-    file.write(text.as_ref()).inspect_err(|e| {log(sender, format!("Could not create config file for {:?}: {}", champion_parent, e))})?;
+}}"#, champion, champion);
+    file.write(text.as_ref()).inspect_err(|e| {log(sender, format!("Could not create config file for {:?}: {}", champion, e))})?;
     Ok(())
 }
 ///modifies the library, so the ltk knows there is a new mod
-fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: & str) -> Result<(), Box<dyn std::error::Error>>{
+fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion: & str) -> Result<(), Box<dyn std::error::Error>>{
     let filepath = format!(r"{}\library.json", option.get_ltk_path());
 
     let mut data = String::new();
@@ -236,11 +236,11 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
     br.read_to_string(&mut data)
         .inspect_err(|e| {log(sender, format!("Could not read file {:?}: {}", filepath, e))})?;
     let mut parsed: Value = serde_json::from_str(&data)
-        .inspect_err(|e| {log(sender, format!("Could not create json from file {:?}: {}", champion_parent, e))})?;
+        .inspect_err(|e| {log(sender, format!("Could not create json from file {:?}: {}", champion, e))})?;
 
     let mods = parsed.get_mut("mods").unwrap(); //todo
     let array = mods.as_array_mut().unwrap(); //todo
-    let key = format!("Giant {}", champion_parent);
+    let key = format!("Giant {}", champion);
 
     let now: DateTime<Utc> = Utc::now();
     let timestamp = now.format("%Y-%m-%dT%H:%M:%S%.9fZ").to_string();
@@ -251,7 +251,7 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
         element["installedAt"] = json!(timestamp);
     }
     else {
-        let id = format!("Giant {}", champion_parent);
+        let id = format!("Giant {}", champion);
         let new_entry = json!({
                 "id": id,
                 "installedAt": timestamp,
@@ -264,7 +264,7 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
 
     let array = &mut parsed.get_mut("folders").unwrap().as_array_mut().unwrap(); //todo
 
-    let new_mod_id = format!("Giant {}", champion_parent);
+    let new_mod_id = format!("Giant {}", champion);
 
     if let Some(root) = array.iter_mut().find(|e| e["id"] == "root") {
         if let Some(mod_ids) = root["modIds"].as_array_mut() {
@@ -280,7 +280,7 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
     Ok(())
 }
 /// Cleanup Overlay, so mod gets reloaded
-fn remove_overlay(sender:&Sender<WorkerMessage>, option: &Options, champion_parent: & str) -> Result<(), Box<dyn std::error::Error>>{
+fn remove_overlay(sender:&Sender<WorkerMessage>, option: &Options, champion: & str) -> Result<(), Box<dyn std::error::Error>>{
     let filepath = format!(r"{}\profiles\default\overlay.json", option.get_ltk_path());
 
     let mut data = String::new();
@@ -294,7 +294,7 @@ fn remove_overlay(sender:&Sender<WorkerMessage>, option: &Options, champion_pare
 
     let enabled = parsed.get_mut("enabledMods").unwrap(); //todo
     let array = enabled.as_array_mut().unwrap(); //todo
-    let key = format!("Giant {}", champion_parent);
+    let key = format!("Giant {}", champion);
 
     array.retain(|v| v.as_str() != Some(key.as_str()));
 

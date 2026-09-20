@@ -63,7 +63,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 continue 'champion;
             }
         }
-        if json_to_bin(sender, options, &name, &champion_parent).is_err(){
+        if json_to_bin(sender, options, &name).is_err(){
             champion.abort();
             continue
         }
@@ -72,13 +72,13 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if !champion.get_abort(){
             let champion_parent = champion.get_parent();
             if export_cslol_checkbox{
-                if export_cslol(sender, options, &champion_parent).is_err(){
+                if export_cslol(sender, options, &champion.get_name(), &champion_parent).is_err(){
                     continue
                 }
 
             }
             if export_ltk_checkbox{
-                if export_ltk(sender, options, &champion_parent).is_err(){
+                if export_ltk(sender, options, &champion.get_name(), &champion_parent).is_err(){
                     continue
                 };
 

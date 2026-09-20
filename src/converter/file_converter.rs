@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::{Path};
-use std::process::{Command, ExitStatus, Output};
+use std::process::{Command};
 use std::sync::mpsc::Sender;
 use rayon::prelude::*;
 use crate::converter::main_gui::{log, WorkerMessage};
@@ -52,10 +52,10 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
     Ok(())
 }
 /// uses ritobin to convert a json file to a bin file
-pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &str, champion_parent: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo also only convert files we need
+pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo also only convert files we need
     let json_path = format!(r"{}\0WADS\data\characters\{}\skins", options.get_project_path(), champion);
 
-    let output_path = format!(r"{}\{}.wad.client\data\characters\{}\skins", options.get_project_path(), champion_parent, champion);
+    let output_path = format!(r"{}\{}.wad.client\data\characters\{}\skins", options.get_project_path(), champion, champion);
     fs::create_dir_all(&output_path).inspect_err(|e| {log(sender, format!("Could not create output directory: {}", e))})?;
 
     for entry in fs::read_dir(&json_path).inspect_err(|e| {log(sender, format!("Could not read directory: {}", e))})? {
