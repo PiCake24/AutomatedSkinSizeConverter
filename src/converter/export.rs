@@ -28,13 +28,11 @@ fn create_wad_file(sender:&Sender<WorkerMessage>, options: &Options, champion_pa
     unpack_wad_make(sender, options)?;
     let filename = format!(r"{}\{}.wad.client", options.get_project_path(), champion_parent);
     let destination = format!(r"{}\installed\giant {}\WAD\{}.wad.client", options.get_cslol_path(), champion, champion_parent);
-    let output = Command::new("cmd")
-        .args(["/C",
-            &get_wad_make_path(options),
-            &filename,
-            &destination
-        ])
+
+    let output = Command::new(get_wad_make_path(options))
+        .args([&filename, &destination])
         .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
+
     if output.status.success() {
         log(sender, format!("Successfully converted wad folder to file {}", filename));
     } else{
@@ -51,8 +49,8 @@ fn unpack_wad_make(sender:&Sender<WorkerMessage>, options: &Options) -> Result<(
     let path_string = &get_wad_make_path(options);
     let path = Path::new(path_string);
     if !path.exists(){
-        let mut file = File::create(path).inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
-        file.write_all(WAD_MAKE).inspect_err(|e| {log(sender, format!("Could not create META folder: {}", e))})?;
+        let mut file = File::create(path).inspect_err(|e| {log(sender, format!("Could not create wad make folder: {}", e))})?;
+        file.write_all(WAD_MAKE).inspect_err(|e| {log(sender, format!("Could not write wad make exe: {}", e))})?;
     }
     Ok(())
 }
@@ -238,14 +236,14 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion: & s
     let mut parsed: Value = serde_json::from_str(&data)
         .inspect_err(|e| {log(sender, format!("Could not create json from file {:?}: {}", champion, e))})?;
 
-    let mods = parsed.get_mut("mods").unwrap(); //todo
-    let array = mods.as_array_mut().unwrap(); //todo
+    let mods = parsed.get_mut("mods").and_then(Value::as_array_mut)
+        .ok_or("library json does not contain mods").inspect_err(|e| {log(sender, e.to_string())})?;
     let key = format!("Giant {}", champion);
 
     let now: DateTime<Utc> = Utc::now();
     let timestamp = now.format("%Y-%m-%dT%H:%M:%S%.9fZ").to_string();
 
-    if let Some(element) = array.iter_mut().find(|e| {
+    if let Some(element) = mods.iter_mut().find(|e| {
         e["id"].as_str().map_or(false, |id| id == key)
     }) {
         element["installedAt"] = json!(timestamp);
@@ -259,10 +257,11 @@ fn modify_library(sender:&Sender<WorkerMessage>, option: &Options, champion: & s
                 "storage": "archive",
                 "slug": id
             });
-        array.push(new_entry);
+        mods.push(new_entry);
     }
 
-    let array = &mut parsed.get_mut("folders").unwrap().as_array_mut().unwrap(); //todo
+    let array = &mut parsed.get_mut("folders").and_then(Value::as_array_mut)
+        .ok_or("library json does not contain folders").inspect_err(|e| {log(sender, e.to_string())})?;
 
     let new_mod_id = format!("Giant {}", champion);
 
@@ -292,11 +291,12 @@ fn remove_overlay(sender:&Sender<WorkerMessage>, option: &Options, champion: & s
     let mut parsed: Value = serde_json::from_str(&data)
         .inspect_err(|e| {log(sender, format!("Could not parse file to json {:?}: {}", filepath, e))})?;
 
-    let enabled = parsed.get_mut("enabledMods").unwrap(); //todo
-    let array = enabled.as_array_mut().unwrap(); //todo
+    let enabled = parsed.get_mut("enabledMods").and_then(Value::as_array_mut)
+        .ok_or("overlay json does not contain enabledMods").inspect_err(|e| {log(sender, e.to_string())})?;
+
     let key = format!("Giant {}", champion);
 
-    array.retain(|v| v.as_str() != Some(key.as_str()));
+    enabled.retain(|v| v.as_str() != Some(key.as_str()));
 
     fs::write(&filepath, serde_json::to_string_pretty(&parsed).
         inspect_err(|e| {log(sender, format!("Could not parse json to string {:?}: {}", filepath, e))})?)
