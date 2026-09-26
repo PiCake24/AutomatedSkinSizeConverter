@@ -16,9 +16,9 @@ impl Options{ //todo defaultvalues for me for testing
     }
     pub(crate) fn new(project_path: &str, league_path: &str,cslol_path: &str, ltk_path: &str) -> Options{
         Self{
-           project_path: project_path.parse().unwrap(), //todo
-            league_path: league_path.parse().unwrap(), //todo
-            cslol_path: cslol_path.parse().unwrap(), //todo
+           project_path: project_path.to_string(),
+            league_path: league_path.to_string(),
+            cslol_path: cslol_path.to_string(),
             ltk_path: ltk_path.to_string(),
         }
     }
