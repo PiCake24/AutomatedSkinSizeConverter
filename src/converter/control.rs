@@ -58,7 +58,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         for skin in champion.get_skins(){
             let skin_number = skin.get_skin();
             let scale = skin.get_scale();
-            if rescale_skins(sender, options, &name, &champion_parent, skin_number, scale).is_err(){
+            if rescale_skins(sender, options, &name, &champion_parent, skin_number, scale, current_set).is_err(){
                 champion.abort();
                 continue 'champion;
             }

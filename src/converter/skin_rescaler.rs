@@ -1,22 +1,33 @@
 use std::collections::VecDeque;
 use std::fs;
-use std::fs::File;
+use std::fs::{read_to_string, File};
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
 use crate::converter::control::control;
+use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
+use crate::data::lux_champion::LuxChampion;
 use crate::data::options::Options;
 
+
 /// reads a
-pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
+pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
     if champion == "lux" && skin == 7 {
-        rescale_lux();
+        // rescale_lux();
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
+        //todo get scale 
+        bin_to_json(sender, options, "sonadjgenre01")?;
+        bin_to_json(sender, options, "sonadjgenre02")?;
+        bin_to_json(sender, options, "sonadjgenre03")?;
+        rescale_normal(sender, options, "sonadjgenre01", "", 6, 2.)?; //todo
+        rescale_normal(sender, options, "sonadjgenre02", "", 6, 2.)?; //todo
+        rescale_normal(sender, options, "sonadjgenre03", "", 6, 2.)?; //todo
+        json_to_bin(sender, options, "sonadjgenre01")?;
+        json_to_bin(sender, options, "sonadjgenre02")?;
+        json_to_bin(sender, options, "sonadjgenre03")?;
         Ok(())
-        // control(sender, options, download_files, "sonadjgenre01")
-        // todo!() //ist djsona nicht einfach djsona?
     } else {
         rescale_normal(sender,options, champion, champion_parent, skin, scale)
     }
@@ -87,6 +98,62 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
     }
 }
 
-fn rescale_lux(){ //todo
-    
+fn rescale_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo
+    let a = read_lux(sender, options, current_set)?;
+    write_lux();
+    Ok(())
+}
+fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
+    let file = format!(r"{}\0PutSizeOptionFilesHere\{}\luxlegendary.txt", options.get_project_path(), current_set);
+    let text = read_to_string(file).inspect_err(|e| { log(sender, format!("Could not read options file to file, trying lux options: {}", e)) });
+    let mut default: Option<f32> = None;
+    let mut champ = LuxChampion::new();
+    if let Ok(text) = text {
+        for line in text.lines() {
+            if line.starts_with("lux:"){
+                default = Some(line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
+            } else if line.starts_with("magma:") {
+                champ.set_magma(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
+            } else if line.starts_with("dark:") {
+                champ.set_dark(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
+            } else if line.starts_with("mystic:") {
+                champ.set_mystic(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
+            } else if line.starts_with("ice:"){
+                champ.set_ice(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
+            } else if line.starts_with("storm:"){
+                champ.set_storm(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            } else if line.starts_with("light:"){
+                champ.set_light(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            } else if line.starts_with("water:"){
+                champ.set_water(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            } else if line.starts_with("fire:"){
+                champ.set_fire(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            } else if line.starts_with("air:"){
+                champ.set_air(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            } else if line.starts_with("nature:"){
+                champ.set_nature(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+            }
+        }
+        if default.is_some(){
+            champ.set_rest(default.unwrap());
+        } else{
+            // todo read default from lux, then from set
+        }
+    } else{
+        let file = format!(r"{}\0PutSizeOptionFilesHere\{}\lux.txt", options.get_project_path(), current_set);
+        let text = read_to_string(file).inspect_err(|e| { log(sender, format!("Could not read options file to file, trying set default options: {}", e)) });
+        if let Ok(text) = text {
+            //todo read default from lux file
+        } else{
+           //todo read default from set,
+            // if that fails do idk?
+        }
+
+    }
+
+
+    Ok(())
+}
+fn write_lux(){
+
 }
