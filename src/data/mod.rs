@@ -1,3 +1,3 @@
 pub mod options;
 pub mod champion;
-pub mod lux_champion;
+pub mod legendary_champion;

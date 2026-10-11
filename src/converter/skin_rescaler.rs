@@ -4,26 +4,26 @@ use std::fs::{read_to_string, File};
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
-use crate::converter::control::control;
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
-use crate::data::lux_champion::LuxChampion;
+use crate::data::legendary_champion::LuxChampion;
+use crate::data::legendary_champion::SonaChampion;
 use crate::data::options::Options;
 
 
 /// reads a
 pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
     if champion == "lux" && skin == 7 {
-        // rescale_lux();
+        rescale_lux(sender, options, current_set)?;
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
-        //todo get scale 
+        let sona_champ = read_sona(sender, options, current_set)?;
         bin_to_json(sender, options, "sonadjgenre01")?;
         bin_to_json(sender, options, "sonadjgenre02")?;
         bin_to_json(sender, options, "sonadjgenre03")?;
-        rescale_normal(sender, options, "sonadjgenre01", "", 6, 2.)?; //todo
-        rescale_normal(sender, options, "sonadjgenre02", "", 6, 2.)?; //todo
-        rescale_normal(sender, options, "sonadjgenre03", "", 6, 2.)?; //todo
+        rescale_normal(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
+        rescale_normal(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
+        rescale_normal(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;
         json_to_bin(sender, options, "sonadjgenre01")?;
         json_to_bin(sender, options, "sonadjgenre02")?;
         json_to_bin(sender, options, "sonadjgenre03")?;
@@ -32,7 +32,7 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         rescale_normal(sender,options, champion, champion_parent, skin, scale)
     }
 }
-
+/// scales a normal champion
 fn rescale_normal(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
     let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.json", options.get_project_path(), champion, skin);
 
@@ -97,13 +97,14 @@ fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque
         ).into())
     }
 }
-
-fn rescale_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo
+/// reads the file for elementalist lux and then rescales her
+fn rescale_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
     let a = read_lux(sender, options, current_set)?;
     write_lux();
     Ok(())
 }
-fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
+///reads the file for elementalist lux
+fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(LuxChampion), Box<dyn std::error::Error>>{
     let file = format!(r"{}\0PutSizeOptionFilesHere\{}\luxlegendary.txt", options.get_project_path(), current_set);
     let text = read_to_string(file).inspect_err(|e| { log(sender, format!("Could not read options file to file, trying lux options: {}", e)) });
     let mut default: Option<f32> = None;
@@ -146,13 +147,99 @@ fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str)
             //todo read default from lux file
         } else{
            //todo read default from set,
-            // if that fails do idk?
+            // if that fails do idk? I guess abort?
         }
 
     }
 
 
-    Ok(())
+    Ok(champ)
+}
+
+/// Reads the size options for DJ Sona from the selected set's `sonalegendary.txt`.
+fn read_sona(sender: &Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<SonaChampion, Box<dyn std::error::Error>> {
+    let file = format!(r"{}\0PutSizeOptionFilesHere\{}\sonalegendary.txt", options.get_project_path(), current_set);
+    let mut champ = SonaChampion::new();
+    let mut has_base = false;
+    match read_to_string(&file) {
+        Ok(text) => {
+            for (line_number, line) in text.lines().enumerate() {
+                let Some((key, value)) = line.split_once(':') else {
+                    continue;
+                };
+                let value: f32 = value.trim().parse().map_err(|e| {
+                    log(sender, format!("Invalid Sona size on line {}: {}", line_number + 1, e));
+                    e
+                })?;
+                match key.trim().to_ascii_lowercase().as_str() {
+                    "sona" | "base" => {
+                        champ.set_base(value);
+                        has_base = true;
+                    }
+                    "1" => champ.set_genre1(value),
+                    "2" => champ.set_genre2(value),
+                    "3" => champ.set_genre3(value),
+                    _ => log(sender, format!("Ignoring unknown Sona legendary option on line {}: {}", line_number + 1, key.trim())),
+                }
+            }
+        }
+        Err(e) => {
+            log(sender, format!("Could not read Sona legendary options {}: {}", file, e));
+        }
+    }
+
+    // If the legendary file is missing or has no base value, use the regular
+    // Sona file's skin 6 override, then its champion default.
+    if !has_base {
+        let sona_file = format!(r"{}\0PutSizeOptionFilesHere\{}\sona.txt", options.get_project_path(), current_set);
+        match read_to_string(&sona_file) {
+            Ok(text) => {
+                let mut skin6 = None;
+                let mut default = None;
+                for line in text.lines() {
+                    let Some((key, value)) = line.split_once(':') else { continue; };
+                    let value: f32 = value.trim().parse().map_err(|e| {
+                        log(sender, format!("Invalid Sona option in {}: {}", sona_file, e));
+                        e
+                    })?;
+                    match key.trim().to_ascii_lowercase().as_str() {
+                        "6" => skin6 = Some(value),
+                        "sona" => default = Some(value),
+                        _ => {}
+                    }
+                }
+                if let Some(value) = skin6.or(default) {
+                    champ.set_base(value);
+                    has_base = true;
+                }
+            }
+            Err(e) => log(sender, format!("Could not read Sona options {}: {}", sona_file, e)),
+        }
+    }
+
+    // Finally try the shared default options file, whose fallback key is Scale:.
+    if !has_base {
+        let options_file = format!(r"{}\0PutSizeOptionFilesHere\{}\0Options.txt", options.get_project_path(), current_set);
+        let text = read_to_string(&options_file).inspect_err(|e| {
+            log(sender, format!("Could not read default options {}: {}", options_file, e));
+        })?;
+        let mut default = None;
+        for (line_number, line) in text.lines().enumerate() {
+            if let Some((key, value)) = line.split_once(':') {
+                if key.trim().eq_ignore_ascii_case("Scale") {
+                    default = Some(value.trim().parse::<f32>().map_err(|e| {
+                        log(sender, format!("Invalid Scale value in {} on line {}: {}", options_file, line_number + 1, e));
+                        e
+                    })?);
+                    break;
+                }
+            }
+        }
+        let value = default.ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, format!("No Scale: default found in {}", options_file)))?;
+        champ.set_base(value);
+    }
+    champ.fill_missing_from_base();
+    Ok(champ)
 }
 fn write_lux(){
 

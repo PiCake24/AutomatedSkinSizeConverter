@@ -223,3 +223,47 @@ impl LuxChampion {
         }
     }
 }
+
+/// Size settings for DJ Sona's base model and three genres.
+pub struct SonaChampion {
+    base: Option<f32>,
+    genre1: Option<f32>,
+    genre2: Option<f32>,
+    genre3: Option<f32>,
+}
+
+impl SonaChampion {
+    pub fn new() -> Self {
+        Self { base: None, genre1: None, genre2: None, genre3: None }
+    }
+
+    pub fn set_base(&mut self, value: f32) {
+        self.base = Some(value);
+    }
+
+    pub fn set_genre1(&mut self, value: f32) {
+        self.genre1 = Some(value);
+    }
+
+    pub fn set_genre2(&mut self, value: f32) {
+        self.genre2 = Some(value);
+    }
+
+    pub fn set_genre3(&mut self, value: f32) {
+        self.genre3 = Some(value);
+    }
+
+    pub fn get_base(&self) -> f32 { self.base.unwrap_or(0.0) }
+    pub fn get_genre1(&self) -> f32 { self.genre1.unwrap_or(self.get_base()) }
+    pub fn get_genre2(&self) -> f32 { self.genre2.unwrap_or(self.get_base()) }
+    pub fn get_genre3(&self) -> f32 { self.genre3.unwrap_or(self.get_base()) }
+
+    pub fn fill_missing_from_base(&mut self) {
+        let Some(base) = self.base else {
+            return;
+        };
+        if self.genre1.is_none() { self.genre1 = Some(base); }
+        if self.genre2.is_none() { self.genre2 = Some(base); }
+        if self.genre3.is_none() { self.genre3 = Some(base); }
+    }
+}
