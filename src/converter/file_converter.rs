@@ -33,9 +33,8 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
 fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>>{
     let old_name = format!(r"{}{}", bin_path, filename);
     let new_name = format!(r"{}\{}{}", bin_path, &filename[..filename.len() - 3], "json");
-    let output = Command::new("cmd") //todo test without hashing
-        .args(["/C",
-            &get_ritobin_path(options),
+    let output = Command::new(&get_ritobin_path(options)) //todo test without hashing
+        .args([
             "-d",
             format!(r"{}\0WADS\hashes\ritobin", options.get_project_path()).as_str(), // todo check existence?
             &old_name,
@@ -43,7 +42,7 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
         .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
     if output.status.success() {
         log(sender, format!("Successful converted {} to json", filename));
-    } else{
+    } else {
         log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
