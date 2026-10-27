@@ -4,7 +4,6 @@ use crate::data::options::Options;
 use eframe::egui::Ui;
 use eframe::{Frame, egui};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -28,12 +27,18 @@ enum WorkType{
 pub struct AutomatedSkinSizeConverter {
     state: AppState,
     options: Options,
+
+    project_path: String,
+    league_path: String,
+    cslol_path:String,
+    ltk_path: String,
+
     download_files: bool,
     export_ltk:bool,
     export_cslol: bool,
 
     sets: Vec<String>,
-    selected1: String,
+    selected_set: String,
     show_create_set: bool,
     new_set_input: String,
 
@@ -47,7 +52,7 @@ pub enum WorkerMessage {
 impl eframe::App for AutomatedSkinSizeConverter {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         match self.state {
-            AppState::VersionCheck => self.state = AppState::CheckOptionFile, //todo
+            AppState::VersionCheck => self.check_version(ui),
             AppState::CheckOptionFile => self.check_options(ui),
             AppState::CheckSets => self.check_sets(), //todo perhaps
             AppState::Running => self.main_ui(ui),
@@ -65,7 +70,6 @@ impl AutomatedSkinSizeConverter{
 
     fn main_ui(&mut self, ui: &mut Ui){
         ui.style_mut().spacing.scroll = egui::style::ScrollStyle::solid();
-        //***********************
         if let Some(rx) = &self.worker {
             let mut done = false;
             while let Ok(msg) = rx.try_recv() {
@@ -77,12 +81,11 @@ impl AutomatedSkinSizeConverter{
             ui.ctx().request_repaint();
 
             if done {
-                self.worker = None;  // borrow of self.worker has ended, safe to assign
+                self.worker = None;
             }
         }
 
         let is_busy = self.worker.is_some();
-        //***********************
 
         egui::Panel::top("my_panel").show(ui, |ui| {
             ui.add_enabled_ui(!is_busy, |ui| {
@@ -92,11 +95,11 @@ impl AutomatedSkinSizeConverter{
                     }
                     ui.label("Set:");
                     egui::ComboBox::from_id_salt("SetOption")
-                        .selected_text(format!("{}", &self.selected1))
+                        .selected_text(format!("{}", &self.selected_set))
                         .show_ui(ui, |ui| {
                             for radio_item in self.sets.iter() {
                                 ui.selectable_value(
-                                    &mut self.selected1,
+                                    &mut self.selected_set,
                                     radio_item.clone(),
                                     radio_item.to_string(),
                                 );
@@ -186,6 +189,7 @@ impl AutomatedSkinSizeConverter{
         }
     }
     fn work(&mut self, ui: &mut Ui, work_type :WorkType){
+        //**************** todo
         let (sender, receiver) = mpsc::channel();
         self.worker = Some(receiver);
         let ctx = ui.ctx().clone();
@@ -228,62 +232,128 @@ impl AutomatedSkinSizeConverter{
         //todo change ui to options ui
         //modify file
     }
-    fn check_version(){
+    fn check_version(&mut self,ui: &mut Ui){
+        //todo check version first
+
+        egui::Modal::new(egui::Id::new("New Version")).show(ui, |ui| {
+            ui.set_min_width(250.0);
+
+
+
+            if ui.button("Continue with old version").clicked() {
+                self.state = AppState::CheckOptionFile
+            }
+
+        });
         //todo
+        // ui textbox, "please update", one button that sends you to github, one that just closes the window
+
     }
     fn check_options(&mut self,ui: &mut Ui){
-        println!("check options"); //todo
         let options_file = Path::new("Options.txt");
-        if !options_file.exists(){
+
+
+        if options_file.exists(){
              egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
                 ui.set_min_width(250.0);
 
-                 // todo read own options first, if they exist dont change anything
-                 // todo change this to reading options.txt, asking for rest
-                ui.heading("No Options.txt in the current directory detected. Do you want to create a new one and also add the paths? (Not implemented yet, use your old options)");
+                ui.heading("No Options.txt in the current directory detected. Do you want to create a new one and also add the paths?");
                 ui.separator();
                 ui.add_space(8.0);
-                //todo felder fuer options, // todo check if each needed value is set
+                 ui.horizontal(|ui| {
+                     ui.label("Project Path:");
+                     ui.text_edit_singleline(&mut self.project_path);
+                     if ui.button("Pick folder").clicked() {
+
+                         if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
+                             self.project_path = path.display().to_string();
+                         }
+
+                     }
+                 });
+                 ui.horizontal(|ui| {
+                     ui.label("League Path (Optional):");
+                     ui.text_edit_singleline(&mut self.league_path);
+                     if ui.button("Pick folder").clicked() {
+
+                         if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
+                             self.league_path = path.display().to_string();
+                         }
+
+                     }
+                 });
+                 ui.horizontal(|ui| {
+                     ui.label("Cslol Path (Optional):");
+                     ui.text_edit_singleline(&mut self.cslol_path);
+                     if ui.button("Pick folder").clicked() {
+
+                         if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
+                             self.cslol_path = path.display().to_string();
+                         }
+
+                     }
+                 });
+                 ui.horizontal(|ui| {
+                     ui.label("Ltk Path (Optional):");
+                     ui.text_edit_singleline(&mut self.ltk_path);
+                     if ui.button("Pick folder").clicked() {
+
+                         if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
+                             self.ltk_path = path.display().to_string();
+                         }
+
+                     }
+                 });
                 ui.horizontal(|ui| {
-                    // if ui.button("Confirm").clicked() {
-                    //     File::create_new(options_file).inspect_err(|e| { log(&Self::get_sender(), "Could not create file") }).expect("TODO: panic message"); //todo
-                    //     //todo dann file befuellen
-                    //     self.state = AppState::CheckSets
-                    // }
+                    if ui.button("Confirm").clicked() {
+                        if (self.project_path != ""){
+                            // versuche Datei zu erstellen, wenn das nicht klappt, mach ein nuees modal, wo steht was schiefgelaufen ist (letzeteres muss gespichert werden)
+                            File::create_new(options_file).expect("TODO: panic message"); //todo
+
+                            // todo dann file befuellen
+                            // wie behandle ich werte die nicht gesetzt sind?
+                            self.state = AppState::CheckSets
+                        } else{
+                            // todo infotext
+                        }
+
+                    }
                     if ui.button("Cancel (this closes the application)").clicked() {
                         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
             });
+
         } else{
-            let f = File::open("Options.txt").unwrap();
-            // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
-            let br = BufReader::new(&f);
-
-            let mut project_path = String::new();
-            let mut league_path = String::new();
-            let mut cslol_path = String::new();
-            let mut ltk_path = String::new();
-
-            for line in br.lines() {
-                let line = line.unwrap();
-                if line.starts_with("Root Path:"){
-                    project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("League Path:") {
-                    league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("CsLol Path:") {
-                    cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("Ltk Path:") {
-                    ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                }
-            }
-            self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
+            // wir lesen eh bei jedem run vorher die Daten ein, dann müssen iwr sie nicht hier einlesen
+            // let f = File::open("Options.txt").unwrap();
+            // // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
+            // let br = BufReader::new(&f);
+            //
+            // let mut project_path = String::new();
+            // let mut league_path = String::new();
+            // let mut cslol_path = String::new();
+            // let mut ltk_path = String::new();
+            //
+            // for line in br.lines() {
+            //     let line = line.unwrap();
+            //     if line.starts_with("Root Path:"){
+            //         project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("League Path:") {
+            //         league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("CsLol Path:") {
+            //         cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("Ltk Path:") {
+            //         ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     }
+            // }
+            // self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
             self.state = AppState::CheckSets;
         }
     }
     fn check_sets(&mut self){
         self.sets.push("default".parse().unwrap());
-        self.selected1 = "default".parse().unwrap();
+        self.selected_set = "default".parse().unwrap();
         // in project path, does a folder in Put folder?
         // if yes, use any of them as default, ideally save it for later, so you can remember which set was opened (ideally put everything from options.txt into that file
         // if no, look if it contains folders, if yes translate them, if no only create folder + 0Options file
@@ -295,8 +365,6 @@ impl AutomatedSkinSizeConverter{
             let file_path = Path::new(project_path).join("0PutSizeOptionFilesHere");
 
             if file_path.exists() {
-                println!("Exists");
-
                 // create default dir
                 fs::create_dir_all(&dir_path).unwrap();
 
