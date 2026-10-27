@@ -14,7 +14,8 @@ use crate::data::options::Options;
 /// reads a
 pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
     if champion == "lux" && skin == 7 {
-        rescale_lux(sender, options, current_set)?;
+        // rescale_lux(sender, options, current_set)?;
+        log(sender, "Elementalist lux is not supported yet");
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
         let sona_champ = read_sona(sender, options, current_set)?;

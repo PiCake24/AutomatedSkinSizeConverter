@@ -1,16 +1,18 @@
-use std::fs;
-use std::path::{Path};
-use std::process::{Command};
-use std::sync::mpsc::Sender;
+use crate::converter::file_converter2::{bin_to_py};
+use crate::converter::main_gui::{WorkerMessage, log};
+use crate::data::options::{Options, get_ritobin_path};
 use rayon::prelude::*;
-use crate::converter::main_gui::{log, WorkerMessage};
-use crate::data::options::{get_ritobin_path, Options};
+use std::fs;
+use std::path::Path;
+use std::process::Command;
+use std::sync::mpsc::Sender;
+
 /// uses ritobin to convert multiple bin files at the same time into a json file
 pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
     let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion);
     let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect();
     //todo ideally only convert the files we need
-    files.into_par_iter().for_each(|entry| {
+    files.into_par_iter().for_each(|entry| { //todo ganz so einfach ist dass dann doch nicht
         let entry_result = entry;
         if entry_result.is_ok() {
             let entry = entry_result.unwrap();
@@ -18,7 +20,9 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
             if filepath_result.is_ok() {
                 let filepath = filepath_result.unwrap();
                 if filepath.ends_with(".bin") && filepath != "root.bin" {
-                    bin_to_json_single(sender, options, &bin_path, &filepath).unwrap(); //todo
+                    bin_to_py(&bin_path, &filepath);
+
+                    // bin_to_json_single(sender, options, &bin_path, &filepath).unwrap(); //todo
                 }
             } else {
                 log(sender, format!("Filepath error: {}", filepath_result.unwrap())) //todo
