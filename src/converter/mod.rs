@@ -6,3 +6,4 @@ mod file_converter;
 mod skin_rescaler;
 pub mod file_converter2;
 mod version_check;
+mod skin_rescaler2;

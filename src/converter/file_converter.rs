@@ -1,4 +1,4 @@
-use crate::converter::file_converter2::{bin_to_py};
+use crate::converter::file_converter2::{bin_to_py, binback2};
 use crate::converter::main_gui::{WorkerMessage, log};
 use crate::data::options::{Options, get_ritobin_path};
 use rayon::prelude::*;
@@ -65,29 +65,32 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
         let entry = entry.inspect_err(|e| {log(sender, format!("Entry failed: {}", e))})?;
         let path = entry.path();
 
-        if path.extension().and_then(|e| e.to_str()) == Some("json") {
 
-            let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
-            let output_file = Path::new(&output_path)
-                .join(file_stem)
-                .with_extension("bin");
 
-            let output = Command::new("cmd")
-                .args([
-                    "/C",
-                    &get_ritobin_path(options),
-                    <&str>::try_from(path.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
-                    <&str>::try_from(output_file.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
-                ])
-                .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
-            if output.status.success() {
-                log(sender, format!("Successful converted {} to bin", json_path));
-            } else{
-                log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
-                ).into())
-            }
+        if path.extension().and_then(|e| e.to_str()) == Some("py") {
+            binback2(path.to_str().unwrap());
+
+            // let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
+            // let output_file = Path::new(&output_path)
+            //     .join(file_stem)
+            //     .with_extension("bin");
+            //
+            // let output = Command::new("cmd")
+            //     .args([
+            //         "/C",
+            //         &get_ritobin_path(options),
+            //         <&str>::try_from(path.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
+            //         <&str>::try_from(output_file.as_os_str()).inspect_err(|e| {log(sender, format!("Could not convert to os path: {}", e))})?,
+            //     ])
+            //     .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;
+            // if output.status.success() {
+            //     log(sender, format!("Successful converted {} to bin", json_path));
+            // } else{
+            //     log(sender, format!("Ritobin Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr)));
+            //     return Err(std::io::Error::new(
+            //         std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
+            //     ).into())
+            // }
         }
     }
     Ok(())

@@ -6,6 +6,7 @@ use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
+use crate::converter::skin_rescaler2::rescale_normal2;
 use crate::data::legendary_champion::LuxChampion;
 use crate::data::legendary_champion::SonaChampion;
 use crate::data::options::Options;
@@ -18,19 +19,20 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         log(sender, "Elementalist lux is not supported yet");
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
+        //todo
         let sona_champ = read_sona(sender, options, current_set)?;
         bin_to_json(sender, options, "sonadjgenre01")?;
         bin_to_json(sender, options, "sonadjgenre02")?;
         bin_to_json(sender, options, "sonadjgenre03")?;
-        rescale_normal(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
-        rescale_normal(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
-        rescale_normal(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;
+        rescale_normal2(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
+        rescale_normal2(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
+        rescale_normal2(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;
         json_to_bin(sender, options, "sonadjgenre01")?;
         json_to_bin(sender, options, "sonadjgenre02")?;
         json_to_bin(sender, options, "sonadjgenre03")?;
         Ok(())
     } else {
-        rescale_normal(sender,options, champion, champion_parent, skin, scale)
+        rescale_normal2(sender,options, champion, champion_parent, skin, scale)
     }
 }
 /// scales a normal champion
