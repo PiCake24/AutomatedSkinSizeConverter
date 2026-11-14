@@ -2,15 +2,14 @@ mod cdtb;
 mod converter;
 mod data;
 
-use std::default::Default;
-use std::fs::File;
-use std::path::Path;
-use eframe::{egui, Frame, Storage};
-use eframe::egui::{Context, TextBuffer};
 use crate::converter::main_gui::AutomatedSkinSizeConverter;
-use crate::data::options::Options;
+use eframe::Storage;
+use eframe::egui::TextBuffer;
+use std::default::Default;
+use std::string::ToString;
+use std::sync::mpsc;
 
-// todo version, version check
+
 // todo fn visibility reduction
 // todo check paths in the app, so they are actually what the user sets and not my hardcoded ones
 // todo add output to panics, because they do crash the app. Maybe try avoiding panics
@@ -19,12 +18,65 @@ use crate::data::options::Options;
 // todo replace strings with paths
 // todo block ui when program is working
 // todo improve error logs even more
+const VERSION: &str = "3.0.0";
 fn main() -> Result<(), eframe::Error> {
+    // bin2();
+
     let options = eframe::NativeOptions::default();
-    eframe::run_native("My egui App", options, Box::new(
+    eframe::run_native("Automated Skin Size Converter", options, Box::new(
         |_cc| Ok(Box::new(AutomatedSkinSizeConverter::new()))
     ))
+    // let (sender, receiver) = mpsc::channel();
+    // cdtb::output::output(&sender);
 }
 
-
-
+// use std::path::PathBuf;
+//
+// use eframe::egui;
+// use egui_file_dialog::FileDialog;
+//
+// struct MyApp {
+//     file_dialog: FileDialog,
+//     picked_file: Option<PathBuf>,
+// }
+//
+// impl MyApp {
+//     pub fn new(_cc: &eframe::CreationContext) -> Self {
+//         Self {
+//             // Create a new file dialog object
+//             file_dialog: FileDialog::new(),
+//             picked_file: None,
+//         }
+//     }
+// }
+//
+// impl eframe::App for MyApp {
+//     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+//         egui::CentralPanel::default().show_inside(ui, |ui| {
+//             if ui.button("Pick file").clicked() {
+//                 // Open the file dialog to pick a file.
+//                 self.file_dialog.pick_file();
+//             }
+//
+//             // ui.label(format!("Picked file: {:?}", self.picked_file));
+//             //
+//             // // Update the dialog
+//             self.file_dialog.update(ui);
+//             //
+//             // // Check if the user picked a file.
+//             // if let Some(path) = self.file_dialog.take_picked() {
+//             //     self.picked_file = Some(path.to_path_buf());
+//             // }
+//         });
+//     }
+// }
+//
+// fn main() -> eframe::Result<()> {
+//     eframe::run_native(
+//         "File dialog demo",
+//         eframe::NativeOptions::default(),
+//         Box::new(|ctx| Ok(Box::new(MyApp::new(ctx)))),
+//     )
+// }
+//
+//

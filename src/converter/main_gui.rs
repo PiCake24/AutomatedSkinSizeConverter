@@ -1,4 +1,4 @@
-use crate::cdtb;
+use crate::{cdtb, VERSION};
 use crate::converter::control::control;
 use crate::data::options::Options;
 use eframe::egui::Ui;
@@ -8,6 +8,7 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::{fs, thread};
+use crate::converter::version_check::version_check;
 
 #[derive(Default)]
 enum AppState {
@@ -36,6 +37,8 @@ pub struct AutomatedSkinSizeConverter {
     download_files: bool,
     export_ltk:bool,
     export_cslol: bool,
+
+    latest_version: String,
 
     sets: Vec<String>,
     selected_set: String,
@@ -233,25 +236,35 @@ impl AutomatedSkinSizeConverter{
         //modify file
     }
     fn check_version(&mut self,ui: &mut Ui){
-        //todo check version first
+        let (sender, receiver) = mpsc::channel();
+        if self.latest_version == ""{
+            self.latest_version = version_check(&sender).unwrap();
+            println!("{}", *VERSION >= *self.latest_version);
+        }
+         //todo save latest version, only call this if there isnt a version saved
 
-        egui::Modal::new(egui::Id::new("New Version")).show(ui, |ui| {
-            ui.set_min_width(250.0);
+        if *VERSION < *self.latest_version {
+            egui::Modal::new(egui::Id::new("New Version")).show(ui, |ui| {
+                ui.set_min_width(250.0);
+
+                ui.label(format!("A new version ({}) is available! Please update. The current version is {}", self.latest_version, VERSION));
+
+                ui.horizontal(|ui| {
+                    if ui.button("Open link to newest version").clicked() {
+                        open::that("https://github.com/PiCake24/AutomatedSkinSizeConverter/releases");
+                    }
+
+                    if ui.button("Continue with old version").clicked() {
+                        self.state = AppState::CheckOptionFile
+                    }
+                });
 
 
-
-            if ui.button("Continue with old version").clicked() {
-                self.state = AppState::CheckOptionFile
-            }
-
-        });
-        //todo
-        // ui textbox, "please update", one button that sends you to github, one that just closes the window
-
+            });
+        }
     }
     fn check_options(&mut self,ui: &mut Ui){
         let options_file = Path::new("Options.txt");
-
 
         if options_file.exists(){
              egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
@@ -351,7 +364,7 @@ impl AutomatedSkinSizeConverter{
             self.state = AppState::CheckSets;
         }
     }
-    fn check_sets(&mut self){
+    fn check_sets(&mut self){ //todo move files instead of copy
         self.sets.push("default".parse().unwrap());
         self.selected_set = "default".parse().unwrap();
         // in project path, does a folder in Put folder?
@@ -366,22 +379,24 @@ impl AutomatedSkinSizeConverter{
 
             if file_path.exists() {
                 // create default dir
-                fs::create_dir_all(&dir_path).unwrap();
+                fs::create_dir_all(&dir_path).unwrap(); //todo
 
-                // copy files from "Size Options" dir to default dir
+                // move files from "Size Options" dir to default dir
                 for entry in fs::read_dir(&file_path).unwrap() {
-                    let entry = entry.unwrap();
+                    let entry = entry.unwrap(); //todo
                     let path = entry.path();
 
-                    // only copy files, skip subdirectories (like "default" itself)
+                    // only move files, skip subdirectories (like "default" itself)
                     if path.is_file() {
                         if let Some(file_name) = path.file_name() {
                             let dest = dir_path.join(file_name);
-                            fs::copy(&path, &dest).unwrap();
+                            fs::copy(&path, &dest).unwrap(); //todo
+                            fs::remove_file(&path).unwrap(); //todo
                         }
                     }
                 }
 
+                // move champions from Options.txt to SizeOptions/default/0Options.txt
                 let options_txt_path = ("Options.txt");
                 println!("{:?}", options_txt_path);
 
@@ -419,14 +434,9 @@ impl AutomatedSkinSizeConverter{
                 let options_file = dir_path.join("0Options.txt");
                 fs::File::create(&options_file).unwrap();
             }
-        } else{
-            println!("Default exists")
         }
         //**************
         self.state = AppState::Running;
-    //     vec!("Default".to_string());
-    //     //check if set folders exist, if yes, load them, if no create default one
-    //     //when creating default one copy files into it
     }
 }
 pub fn log(sender: &Sender<WorkerMessage>, msg: impl Into<String>) {
