@@ -3,6 +3,7 @@ use crate::converter::main_gui::{WorkerMessage, log};
 use crate::data::options::{Options, get_ritobin_path};
 use rayon::prelude::*;
 use std::fs;
+use std::ops::Add;
 use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::Sender;
@@ -68,7 +69,10 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
 
 
         if path.extension().and_then(|e| e.to_str()) == Some("py") {
-            binback2(path.to_str().unwrap());
+            let filename = path.as_path().file_name().unwrap().to_str().unwrap().to_string();
+            println!("{}", filename);
+            let filename:String = filename[..filename.len() - 2].to_string();
+            binback2(path.to_str().unwrap(), &format!("{}/{}{}", &output_path, filename, "bin"));
 
             // let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
             // let output_file = Path::new(&output_path)

@@ -6,7 +6,7 @@ use crate::converter::main_gui::WorkerMessage;
 use crate::data::options::Options;
 
 pub fn rescale_normal2(sender:&Sender<WorkerMessage>, options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>> {
-    let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.json", options.get_project_path(), champion, skin);
+    let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.py", options.get_project_path(), champion, skin);
 
     println!("{}", scale);
 

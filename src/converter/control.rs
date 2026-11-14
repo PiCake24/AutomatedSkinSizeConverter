@@ -18,7 +18,7 @@ use crate::data::champion::{Champion, SkinScale};
 /// main control flow
 pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
     let options = &read_options();
-    unpack_ritobin(options);
+    // unpack_ritobin(options);
     let mut champions = get_champions(sender, options, current_set ).unwrap(); //todo
     if download_files {
         if download_hashes(options, sender).is_ok(){
@@ -41,7 +41,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if download_files{
             //todo clean 0WADS/data
             //todo also clean output folder in projects
-            wad_extract(options, sender, &champion_parent).expect("TODO: panic message"); //todo actually just return and throw error
+            wad_extract(options, sender, &champion_parent, champion).expect("TODO: panic message"); //todo actually just return and throw error
         }
         if champion.get_skins().is_empty(){
             if get_all_skins(sender, options, &mut champion).is_err(){

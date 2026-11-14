@@ -23,10 +23,10 @@ pub fn bin_to_py(bin_path: &str, filename: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 // Parse ritobin text
-pub fn binback2(py_path: &str) -> Result<(), Box<dyn Error>>{
+pub fn binback2(py_path: &str, output_path: &str) -> Result<(), Box<dyn Error>>{
 
     let old_name = format!(r"{}", py_path);
-    let new_name = format!(r"{}{}", &py_path[..py_path.len() - 2], "bin");
+    let new_name = format!(r"{}",output_path);
 
     println!("{}", old_name);
     println!("{}", new_name);

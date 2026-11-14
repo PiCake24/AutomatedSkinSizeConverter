@@ -261,12 +261,14 @@ impl AutomatedSkinSizeConverter{
 
 
             });
+        } else{
+            self.state = AppState::CheckOptionFile
         }
     }
     fn check_options(&mut self,ui: &mut Ui){
         let options_file = Path::new("Options.txt");
 
-        if options_file.exists(){
+        if !options_file.exists(){
              egui::Modal::new(egui::Id::new("new_options")).show(ui, |ui| {
                 ui.set_min_width(250.0);
 
@@ -338,6 +340,7 @@ impl AutomatedSkinSizeConverter{
             });
 
         } else{
+            println!("exists");
             // wir lesen eh bei jedem run vorher die Daten ein, dann müssen iwr sie nicht hier einlesen
             // let f = File::open("Options.txt").unwrap();
             // // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
@@ -436,6 +439,7 @@ impl AutomatedSkinSizeConverter{
             }
         }
         //**************
+        println!("checked");
         self.state = AppState::Running;
     }
 }
