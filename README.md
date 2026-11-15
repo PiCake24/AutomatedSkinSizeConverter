@@ -4,9 +4,7 @@ This program allows the user to change the size of league of legends skins in gr
 
 ## Dependencies
 
-[You need to download java.](https://www.oracle.com/java/technologies/downloads)
-
-While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) to 
+While my program doesn't directly need it I still recommend using [cslol](https://github.com/LeagueToolkit/cslol-manager) or [ltk manager](https://github.com/LeagueToolkit/ltk-manager) to 
 actually use the mods.
 
 You can download the [latest release from the "Releases" section](https://github.com/PiCake24/AutomatedSkinSizeConverter/releases/tag/v1.2.0).
@@ -15,49 +13,53 @@ You can download the [latest release from the "Releases" section](https://github
 
 Step 1: run the .exe
 
-Step 2: Click on Create Options File. This creates the File which the program needs to run. This file should always be in the same folder as the program itself.
+Step 2: If you do not have already an Options file the program will create one and prompt you the needed values.
 
-Step 3: Open the Options.txt File the program created in the same folder where the program is located.
+Step 3: Insert the path to the folder where the mods should be put under "Root Path" (you will have to create this folder yourself). E.g.:
 
-Step 4: Insert the path to the folder where the mods should be put under "root path" (you will have to create this folder yourself). E.g.:
+`C:\Users\<user>\Desktop\MassConverter`
 
-`C:\Users\Yanni\Desktop\MassConverter`
-
-Step 5: Insert the path to the folder where the League Of Legends.exe is located under "League path" (It should end something like Riot Games\League of Legends\Game). E.g.:
+(Optional) Step 4: Insert the path to the folder where the League Of Legends.exe is located under "League Path" (It should end something like Riot Games\League of Legends\Game). E.g.:
 
 `C:\Riot Games\League of Legends\Game`
 
-(Optional) Step 6:  Insert the path to the folder where the League Of Legends.exe is located under "CsLol path" (This is only needed if you want the program to import the mods directly into cslol). E.g.:
+(This is only needed if you want the program to unpack the files itself)
+
+(Optional) Step 5:  Insert the path to the folder where the CsLolManager is located under "CsLol path" (This is only needed if you want the program to import the mods directly into cslol). E.g.:
 
 ` D:\Programs verknuepfng\Programs\cslol-manager`
 
-Step 7:Save the Options.txt file
+(Optional) Step 6:  Insert the path to the folder where the Ltk Manager puts its mods under "Ltk Path" (This is only needed if you want the program to import the mods directly into ltk manager). E.g.:
 
-(Optional) Step 8: Now press Generate Folders to create the needed Folders in the root folder.
+`C:\mods`
 
-You only need to do this, if you want to set the skins to a different size. The size without using these folders is set to 5.
+Step 7: Click Confirm
 
 ## How to use the program
 
-Step 1: Add the champions you want to convert into the Options.txt file in the lines below path lines, e.g.
+Step 1: Add the champions you want to convert into the 0Options.txt file, which you can find under <project>/0PutSizeOptionFilesHere/default, 
 
 `ahri`
 
-(Optional) Additionally you can limit the maximum number of skins being converted by putting a number separated by a space behind the champion name. E.g.
+(Optional) Additionally you can limit the exactly which skins you want to convert being converted by putting a number separated by a space behind the champion name. E.g.
 
-`ahri 61`
+`ahri 7-61` This will convert all skins from 7 up until and including skin 61.
 
-This will convert all skins up until and including skin 61.
+`ahri 1|23|90` This will convert skins 1, 23 and 90
 
-Step 2: Save the Options.txt file
+`ahri 1-34|87` This will convert skins 1 to 34 and 87
+
+(If you have used an older version of the program where you could only select the max skin the program will automatically convert these to the new format the first time you start it)
+
+Step 2: Save the 0Options.txt file
 
 Step 3: Add the size Options files into the 0PutSizeOptionFilesHere folder (see below how to create them).
 
-(Optional) Step 4: In the Pogram check the "Enable self unpack" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+(Optional) Step 4: In the program check the "Download Files" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
-(Optional) Step 5: In the program check the "Import mods into cslol" checkbox for the program to add the mods as "giant <championname>" into cslol. If you want to use this option I recommend to close cslol while my program is running.
+(Optional) Step 5: In the program check the "Export to cslol"/"Export to ltk" checkboxes for the program to add the mods as "giant <championname>" into cslol/ltk manager. If you want to use this option I recommend to close cslol/ltk manager while my program is running.
 
-Step 6: Click on Convert Chosen Champion and wait for the program to finish.
+Step 6: Click "Start Conversion" and wait for the program to finish.
 
 Step 7: Now just import the wad folders into cslol, if you have not checked the "Import mods into cslol" checkbox yourself
 
