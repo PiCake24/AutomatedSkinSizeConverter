@@ -17,7 +17,7 @@ use crate::data::champion::{Champion, SkinScale};
 
 /// main control flow
 pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
-    let options = &read_options();
+    let options = &Options::new_read();
     let mut champions = get_champions(sender, options, current_set ).unwrap(); //todo
     if download_files {
         if download_hashes(options, sender).is_ok(){
@@ -34,12 +34,16 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
 
     'champion: for mut champion in &mut champions{
 
+        cleanup(options, champion);
+
         let champion_parent = champion.get_parent();
         let name = champion.get_name();
 
         if download_files{
-            //todo clean 0WADS/data
-            //todo also clean output folder in projects
+            if options.get_league_path() == ""{
+                log(sender, "League path not set");
+                return
+            }
             if wad_extract(options, sender, &champion_parent, champion).is_err(){
                 return
             }
@@ -72,12 +76,20 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if !champion.get_abort(){
             let champion_parent = champion.get_parent();
             if export_cslol_checkbox{
+                if options.get_cslol_path() == ""{
+                    log(sender, "Cslol path not set");
+                    return
+                }
                 if export_cslol(sender, options, &champion.get_name(), &champion_parent).is_err(){
                     continue
                 }
 
             }
             if export_ltk_checkbox{
+                if options.get_ltk_path() == ""{
+                    log(sender, "Ltk path not set");
+                    return
+                }
                 if export_ltk(sender, options, &champion.get_name(), &champion_parent).is_err(){
                     continue
                 };
@@ -87,31 +99,6 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
     }
     // fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?; //todo cleanup folders
     log(sender, "Completed") //todo timestamp
-}
-/// reads options.txt and returns the path values
-fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
-    let f = File::open("Options.txt").unwrap();
-    // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
-    let br = BufReader::new(&f);
-
-    let mut project_path = String::new();
-    let mut league_path = String::new();
-    let mut cslol_path = String::new();
-    let mut ltk_path = String::new();
-
-    for line in br.lines() { //todo nach options auslagern
-        let line = line.unwrap();
-        if line.starts_with("Root Path:"){ //todo das ganze crasht auch wenn ein Pfad nicht gesetzt ist. Das ist doof
-            project_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
-        } else if line.starts_with("League Path:") {
-            league_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
-        } else if line.starts_with("CsLol Path:") {
-            cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
-        } else if line.starts_with("Ltk Path:") {
-            ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
-        }
-    }
-    Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path)
 }
 /// reads from options.txt which champions and which skins to convert
 fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<Vec<Champion>, Box<dyn std::error::Error>>{
@@ -191,7 +178,6 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
 
     for id in skin_ids {
         champion.add_skins(id);
-        println!("{}", id);
     }
 
     Ok(())
@@ -304,4 +290,13 @@ fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&
         }
     }
 }
-
+fn cleanup(option: &Options, champion:&mut Champion){
+    let zip = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion.get_name());
+    if fs::exists(&zip).unwrap_or(false){
+        fs::remove_file(&zip);
+    }
+    let archive = format!(r"{}\0WADS\{}.wad.client", option.get_project_path(), champion.get_name());
+    if fs::exists(&archive).unwrap(){
+        fs::remove_file(&archive);
+    }
+}

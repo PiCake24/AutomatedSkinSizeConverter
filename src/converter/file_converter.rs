@@ -23,13 +23,12 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
                 if filepath.ends_with(".bin") && filepath != "root.bin" {
                     bin_to_py(sender, options, &bin_path, &filepath);
 
-                    // bin_to_json_single(sender, options, &bin_path, &filepath).unwrap(); //todo
                 }
             } else {
-                log(sender, format!("Filepath error: {:?}", filepath_result)) //todo
+                log(sender, format!("Filepath error: {:?}", filepath_result))
             }
         } else {
-            log(sender, format!("Entry error: {:?}", entry_result)) //todo
+            log(sender, format!("Entry error: {:?}", entry_result))
         }
 });
     Ok(())
@@ -38,10 +37,10 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
 fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path: &str, filename: &str) -> Result<(), Box<dyn std::error::Error>>{
     let old_name = format!(r"{}{}", bin_path, filename);
     let new_name = format!(r"{}\{}{}", bin_path, &filename[..filename.len() - 3], "json");
-    let output = Command::new(&get_ritobin_path(options)) //todo test without hashing
+    let output = Command::new(&get_ritobin_path(options))
         .args([
             "-d",
-            format!(r"{}\0WADS\hashes\ritobin", options.get_project_path()).as_str(), // todo check existence?
+            format!(r"{}\0WADS\hashes\ritobin", options.get_project_path()).as_str(),
             &old_name,
             &new_name])
         .output().inspect_err(|e| {log(sender, format!("Error while creating bin with ritobin: {}", e))})?;

@@ -45,8 +45,8 @@ impl Champion {
         let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
                                  options.get_league_path(),
                                  champion_parent);
-        let result = fs::exists(Path::new(file_path));
-        if !result.unwrap(){ //todo this can crash if unwrap fails (also test viktor, vi)
+        let result = fs::exists(Path::new(file_path)).unwrap_or(false);
+        if !result{
             return Self::set_parent(options, champion.split_at( champion.len()-1).0.to_string())
         }
         champion_parent.to_string()

@@ -115,6 +115,7 @@ impl AutomatedSkinSizeConverter{
                         self.show_create_set = true;
                     }
                     if ui.button("Open current set in explorer").clicked(){ //todo options is not necessarily set, find a workaround
+                        self.options = Options::new_read();
                         Command::new("explorer")
                             .arg(format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()))
                             .spawn()
@@ -241,7 +242,6 @@ impl AutomatedSkinSizeConverter{
         if self.latest_version == ""{
             self.latest_version = version_check(&sender).unwrap();
         }
-         //todo save latest version, only call this if there isnt a version saved
 
         if *VERSION < *self.latest_version {
             egui::Modal::new(egui::Id::new("New Version")).show(ui, |ui| {
@@ -335,28 +335,28 @@ impl AutomatedSkinSizeConverter{
 
         } else{
             // wir lesen eh bei jedem run vorher die Daten ein, dann müssen iwr sie nicht hier einlesen
-            let f = File::open("Options.txt").unwrap(); //todo this crashes when some paths arent set
-            // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
-            let br = BufReader::new(&f);
-
-            let mut project_path = String::new();
-            let mut league_path = String::new();
-            let mut cslol_path = String::new();
-            let mut ltk_path = String::new();
-
-            for line in br.lines() {
-                let line = line.unwrap();
-                if line.starts_with("Root Path:"){
-                    project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("League Path:") {
-                    league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("CsLol Path:") {
-                    cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                } else if line.starts_with("Ltk Path:") {
-                    ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-                }
-            }
-            self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
+            // let f = File::open("Options.txt").unwrap(); //todo this crashes when some paths arent set
+            // // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
+            // let br = BufReader::new(&f);
+            //
+            // let mut project_path = String::new();
+            // let mut league_path = String::new();
+            // let mut cslol_path = String::new();
+            // let mut ltk_path = String::new();
+            //
+            // for line in br.lines() {
+            //     let line = line.unwrap();
+            //     if line.starts_with("Root Path:"){
+            //         project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("League Path:") {
+            //         league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("CsLol Path:") {
+            //         cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     } else if line.starts_with("Ltk Path:") {
+            //         ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+            //     }
+            // }
+            // self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
             self.state = AppState::CheckSets;
         }
     }
