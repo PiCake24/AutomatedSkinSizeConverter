@@ -5,15 +5,7 @@ pub struct Options {
     cslol_path: String,
     ltk_path: String
 }
-impl Options{ //todo defaultvalues for me for testing
-    pub(crate) fn new_default() -> Options{
-        Self{
-            project_path: r"D:\wad".to_string(),
-            league_path: r"D:\Riot Games\League of Legends\Game".to_string(),
-            cslol_path: r"D:\Programs verknuepfng\Programs\cslol-manager".to_string(),
-            ltk_path: r"C:\mods".to_string(),
-        }
-    }
+impl Options{
     pub(crate) fn new(project_path: &str, league_path: &str,cslol_path: &str, ltk_path: &str) -> Options{
         Self{
            project_path: project_path.to_string(),

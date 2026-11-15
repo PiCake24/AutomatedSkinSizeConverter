@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::fs::{File, read_to_string};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 use rayon::prelude::*;
 use std::sync::mpsc::Sender;
@@ -18,7 +18,6 @@ use crate::data::champion::{Champion, SkinScale};
 /// main control flow
 pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_checkbox:bool, export_ltk_checkbox: bool, current_set: &str){
     let options = &read_options();
-    // unpack_ritobin(options);
     let mut champions = get_champions(sender, options, current_set ).unwrap(); //todo
     if download_files {
         if download_hashes(options, sender).is_ok(){
@@ -28,7 +27,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 log(sender, "Using old hashes")
             } else{
                 log(sender, "No hashes available, stopping");
-                return //todo throw error
+                return
             }
         }
     }
@@ -41,7 +40,9 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if download_files{
             //todo clean 0WADS/data
             //todo also clean output folder in projects
-            wad_extract(options, sender, &champion_parent, champion).expect("TODO: panic message"); //todo actually just return and throw error
+            if wad_extract(options, sender, &champion_parent, champion).is_err(){
+                return
+            }
         }
         if champion.get_skins().is_empty(){
             if get_all_skins(sender, options, &mut champion).is_err(){
@@ -50,7 +51,6 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             }
         }
         get_scale(sender,options, &mut champion, current_set);
-        //todo folgendes in eigene Methode?, abgesehen von den exports
         if bin_to_json(sender, options, &name).is_err(){
             champion.abort();
             continue
@@ -101,7 +101,7 @@ fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
 
     for line in br.lines() { //todo nach options auslagern
         let line = line.unwrap();
-        if line.starts_with("Root Path:"){
+        if line.starts_with("Root Path:"){ //todo das ganze crasht auch wenn ein Pfad nicht gesetzt ist. Das ist doof
             project_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
         } else if line.starts_with("League Path:") {
             league_path = line.split_once(":").unwrap().1.trim().parse().unwrap(); //todo
@@ -112,17 +112,6 @@ fn read_options()-> Options{ //todo mach ma schoen. genuinely schreckich
         }
     }
     Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path)
-}
-static RITOBIN: &[u8] = include_bytes!("../../resources/ritobin_cli.exe");
-/// unpacks ritobin into the 0WADS directory in the project directory
-fn unpack_ritobin(options: &Options){
-    //todo only create when version is not old (if there is no version, rebuild anyways and not down current version
-    let path_string = &get_ritobin_path(options);
-    let path = Path::new(path_string);
-    if !path.exists(){
-        let mut file = File::create(path).unwrap();
-    file.write_all(RITOBIN).unwrap();
-    }
 }
 /// reads from options.txt which champions and which skins to convert
 fn get_champions(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<Vec<Champion>, Box<dyn std::error::Error>>{
