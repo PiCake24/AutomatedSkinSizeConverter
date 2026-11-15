@@ -35,11 +35,11 @@ pub fn version_check(
     // println!("Body: {}", res.text()?);
     let version_tag = "\"tag_name\":\"v";
     let binding = res.text()?; //todo rename
-    let a = binding.split_once(version_tag).unwrap().1.split_once("\",\"target_commitish\"").unwrap().0;
+    let a = binding.split_once(version_tag).unwrap().1.split_once("\",\"target_commitish\"").unwrap().0; //todo unwrap
     // String versionTag = "\"tag_name\":\"v"; // The start of the version tag
     // int versionStartIndex = responseBody.indexOf(versionTag) + versionTag.length();
     // int versionEndIndex = responseBody.indexOf("\"", versionStartIndex);
-    println!("{}", &a);
+    // println!("{}", &a);
 
     Ok(a.parse()?)
 }

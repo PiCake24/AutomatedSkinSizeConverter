@@ -19,7 +19,6 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         log(sender, "Elementalist lux is not supported yet");
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
-        //todo
         let sona_champ = read_sona(sender, options, current_set)?;
         bin_to_json(sender, options, "sonadjgenre01")?;
         bin_to_json(sender, options, "sonadjgenre02")?;

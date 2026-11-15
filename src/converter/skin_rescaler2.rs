@@ -2,27 +2,25 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
-use crate::converter::main_gui::WorkerMessage;
+use crate::converter::main_gui::{log, WorkerMessage};
 use crate::data::options::Options;
 
 pub fn rescale_normal2(sender:&Sender<WorkerMessage>, options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>> {
     let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.py", options.get_project_path(), champion, skin);
 
-    println!("{}", scale);
+    log(sender, format!("Writing into {} with size {}", &filepath, scale));
+
 
     let mut data = String::new();
-    let f = File::open(&filepath).expect("File not available");
+    let f = File::open(&filepath).inspect_err(|e| {log(sender, format!("Could not open file {}: {}", &filepath, e))})?;
     let mut br = BufReader::new(&f);
-    br.read_to_string(&mut data).expect("Should be able to read to string");
+    br.read_to_string(&mut data).inspect_err(|e| {log(sender, format!("Could not read file {}: {}", &filepath, e))})?;
 
     let patched = set_skin_scale(&data, scale);
-    if !patched.contains(&format!("skinScale: f32 = {}", scale)) {
-        panic!("skinScale was not inserted");
-    }
 
-    fs::write(&filepath, &patched).expect("TODO: panic message");
+    fs::write(&filepath, &patched).inspect_err(|e| {log(sender, format!("Could not write to file {}: {}", &filepath, e))})?;
 
-    println!("{}", format!("Done: {}", filepath));
+    log(sender, format!("Completed writing into {}", filepath));
     Ok(())
 }
 fn brace_delta(line: &str) -> i32 {

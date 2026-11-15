@@ -115,7 +115,6 @@ impl AutomatedSkinSizeConverter{
                         self.show_create_set = true;
                     }
                     if ui.button("Open current set in explorer").clicked(){ //todo options is not necessarily set, find a workaround
-                        println!("{}", format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()));
                         Command::new("explorer")
                             .arg(format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()))
                             .spawn()
@@ -241,7 +240,6 @@ impl AutomatedSkinSizeConverter{
         let (sender, receiver) = mpsc::channel();
         if self.latest_version == ""{
             self.latest_version = version_check(&sender).unwrap();
-            println!("{}", *VERSION >= *self.latest_version);
         }
          //todo save latest version, only call this if there isnt a version saved
 
@@ -336,7 +334,6 @@ impl AutomatedSkinSizeConverter{
             });
 
         } else{
-            println!("exists");
             // wir lesen eh bei jedem run vorher die Daten ein, dann müssen iwr sie nicht hier einlesen
             let f = File::open("Options.txt").unwrap(); //todo this crashes when some paths arent set
             // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
@@ -397,11 +394,8 @@ impl AutomatedSkinSizeConverter{
 
                 // move champions from Options.txt to SizeOptions/default/0Options.txt
                 let options_txt_path = "Options.txt";
-                println!("{:?}", options_txt_path);
-
 
                 let content = fs::read_to_string(&options_txt_path).unwrap();
-                println!("{}", content);
 
                 let filtered_lines: Vec<String> = content
                     .lines()
@@ -435,7 +429,6 @@ impl AutomatedSkinSizeConverter{
             }
         }
         //**************
-        println!("checked");
         self.state = AppState::Running;
     }
 }

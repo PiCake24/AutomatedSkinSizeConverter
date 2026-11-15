@@ -1,4 +1,4 @@
-use crate::converter::file_converter2::{bin_to_py, binback2};
+use crate::converter::file_converter2::{bin_to_py, py_to_bin};
 use crate::converter::main_gui::{WorkerMessage, log};
 use crate::data::options::{Options, get_ritobin_path};
 use rayon::prelude::*;
@@ -21,15 +21,15 @@ pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &st
             if filepath_result.is_ok() {
                 let filepath = filepath_result.unwrap();
                 if filepath.ends_with(".bin") && filepath != "root.bin" {
-                    bin_to_py(&bin_path, &filepath);
+                    bin_to_py(sender, options, &bin_path, &filepath);
 
                     // bin_to_json_single(sender, options, &bin_path, &filepath).unwrap(); //todo
                 }
             } else {
-                log(sender, format!("Filepath error: {}", filepath_result.unwrap())) //todo
+                log(sender, format!("Filepath error: {:?}", filepath_result)) //todo
             }
         } else {
-            log(sender, format!("Entry error: {:?}", entry_result.unwrap())) //todo
+            log(sender, format!("Entry error: {:?}", entry_result)) //todo
         }
 });
     Ok(())
@@ -70,9 +70,8 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
 
         if path.extension().and_then(|e| e.to_str()) == Some("py") {
             let filename = path.as_path().file_name().unwrap().to_str().unwrap().to_string();
-            println!("{}", filename);
             let filename:String = filename[..filename.len() - 2].to_string();
-            binback2(path.to_str().unwrap(), &format!("{}/{}{}", &output_path, filename, "bin"));
+            py_to_bin(sender, path.to_str().unwrap(), &format!("{}/{}{}", &output_path, filename, "bin"))?;
 
             // let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
             // let output_file = Path::new(&output_path)
