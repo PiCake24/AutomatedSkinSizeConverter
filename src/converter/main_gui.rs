@@ -8,6 +8,7 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::{fs, thread};
+use std::io::{BufRead, BufReader};
 use crate::converter::version_check::version_check;
 
 #[derive(Default)]
@@ -33,6 +34,7 @@ pub struct AutomatedSkinSizeConverter {
     league_path: String,
     cslol_path:String,
     ltk_path: String,
+    project_not_set: bool,
 
     download_files: bool,
     export_ltk:bool,
@@ -112,7 +114,7 @@ impl AutomatedSkinSizeConverter{
                     if ui.button("Create new Set").clicked() {
                         self.show_create_set = true;
                     }
-                    if ui.button("Open current set in explorer").clicked(){
+                    if ui.button("Open current set in explorer").clicked(){ //todo options is not necessarily set, find a workaround
                         println!("{}", format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()));
                         Command::new("explorer")
                             .arg(format!(r"{}\0PutSizeOptionFilesHere\default", self.options.get_project_path()))
@@ -279,57 +281,51 @@ impl AutomatedSkinSizeConverter{
                      ui.label("Project Path:");
                      ui.text_edit_singleline(&mut self.project_path);
                      if ui.button("Pick folder").clicked() {
-
                          if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
                              self.project_path = path.display().to_string();
                          }
-
                      }
                  });
                  ui.horizontal(|ui| {
                      ui.label("League Path (Optional):");
                      ui.text_edit_singleline(&mut self.league_path);
                      if ui.button("Pick folder").clicked() {
-
                          if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
                              self.league_path = path.display().to_string();
                          }
-
                      }
                  });
                  ui.horizontal(|ui| {
                      ui.label("Cslol Path (Optional):");
                      ui.text_edit_singleline(&mut self.cslol_path);
                      if ui.button("Pick folder").clicked() {
-
                          if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
                              self.cslol_path = path.display().to_string();
                          }
-
                      }
                  });
                  ui.horizontal(|ui| {
                      ui.label("Ltk Path (Optional):");
                      ui.text_edit_singleline(&mut self.ltk_path);
                      if ui.button("Pick folder").clicked() {
-
                          if let Some(path) = rfd::FileDialog::new().pick_folder() { //todo startfolder
                              self.ltk_path = path.display().to_string();
                          }
 
                      }
                  });
+                 if self.project_not_set == true{
+                     ui.label("No project path set");
+                 }
                 ui.horizontal(|ui| {
                     if ui.button("Confirm").clicked() {
-                        if (self.project_path != ""){
-                            // versuche Datei zu erstellen, wenn das nicht klappt, mach ein nuees modal, wo steht was schiefgelaufen ist (letzeteres muss gespichert werden)
+                        if self.project_path != ""{
                             File::create_new(options_file).expect("TODO: panic message"); //todo
-
-                            // todo dann file befuellen
-                            // wie behandle ich werte die nicht gesetzt sind?
+                            let output = format!("Root Path: {}\nLeague Path: {}\nCsLol Path: {}\nLtk Path: {}", self.project_path, self.league_path, self.cslol_path, self.ltk_path);
+                            fs::write(&options_file, output).unwrap(); //todo
                             self.state = AppState::CheckSets
                         } else{
-                            // todo infotext
+                            self.project_not_set = true;
                         }
 
                     }
@@ -342,34 +338,34 @@ impl AutomatedSkinSizeConverter{
         } else{
             println!("exists");
             // wir lesen eh bei jedem run vorher die Daten ein, dann müssen iwr sie nicht hier einlesen
-            // let f = File::open("Options.txt").unwrap();
-            // // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
-            // let br = BufReader::new(&f);
-            //
-            // let mut project_path = String::new();
-            // let mut league_path = String::new();
-            // let mut cslol_path = String::new();
-            // let mut ltk_path = String::new();
-            //
-            // for line in br.lines() {
-            //     let line = line.unwrap();
-            //     if line.starts_with("Root Path:"){
-            //         project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-            //     } else if line.starts_with("League Path:") {
-            //         league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-            //     } else if line.starts_with("CsLol Path:") {
-            //         cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-            //     } else if line.starts_with("Ltk Path:") {
-            //         ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
-            //     }
-            // }
-            // self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
+            let f = File::open("Options.txt").unwrap(); //todo this crashes when some paths arent set
+            // todo If you only need to read the entire file contents, consider std::fs::read() or std::fs::read_to_string() instead. Uff
+            let br = BufReader::new(&f);
+
+            let mut project_path = String::new();
+            let mut league_path = String::new();
+            let mut cslol_path = String::new();
+            let mut ltk_path = String::new();
+
+            for line in br.lines() {
+                let line = line.unwrap();
+                if line.starts_with("Root Path:"){
+                    project_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+                } else if line.starts_with("League Path:") {
+                    league_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+                } else if line.starts_with("CsLol Path:") {
+                    cslol_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+                } else if line.starts_with("Ltk Path:") {
+                    ltk_path = line.split_once(":").unwrap().1.trim().parse().unwrap();
+                }
+            }
+            self.options = Options::new(&*project_path, &*league_path, &*cslol_path, &*ltk_path);
             self.state = AppState::CheckSets;
         }
     }
-    fn check_sets(&mut self){ //todo move files instead of copy
-        self.sets.push("default".parse().unwrap());
-        self.selected_set = "default".parse().unwrap();
+    fn check_sets(&mut self){
+        self.sets.push("default".parse().unwrap()); //todo
+        self.selected_set = "default".parse().unwrap(); //todo
         // in project path, does a folder in Put folder?
         // if yes, use any of them as default, ideally save it for later, so you can remember which set was opened (ideally put everything from options.txt into that file
         // if no, look if it contains folders, if yes translate them, if no only create folder + 0Options file
@@ -400,7 +396,7 @@ impl AutomatedSkinSizeConverter{
                 }
 
                 // move champions from Options.txt to SizeOptions/default/0Options.txt
-                let options_txt_path = ("Options.txt");
+                let options_txt_path = "Options.txt";
                 println!("{:?}", options_txt_path);
 
 
