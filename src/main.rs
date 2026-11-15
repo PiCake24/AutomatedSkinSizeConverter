@@ -1,9 +1,12 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod cdtb;
 mod converter;
 mod data;
 
 use crate::converter::main_gui::AutomatedSkinSizeConverter;
 use std::default::Default;
+
+
 
 // todo fn visibility reduction
 // todo check paths in the app, so they are actually what the user sets and not my hardcoded ones
@@ -15,8 +18,6 @@ use std::default::Default;
 // todo improve error logs even more
 const VERSION: &str = "3.0.0";
 fn main() -> Result<(), eframe::Error> {
-    // bin2();
-
     let options = eframe::NativeOptions::default();
     eframe::run_native("Automated Skin Size Converter", options, Box::new(
         |_cc| Ok(Box::new(AutomatedSkinSizeConverter::new()))
