@@ -8,7 +8,6 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::{fs, thread};
-use std::io::{BufRead, BufReader};
 use crate::converter::version_check::version_check;
 
 #[derive(Default)]
@@ -111,9 +110,9 @@ impl AutomatedSkinSizeConverter{
                             }
                         });
 
-                    if ui.button("Create new Set").clicked() {
-                        self.show_create_set = true;
-                    }
+                    // if ui.button("Create new Set").clicked() {
+                    //     self.show_create_set = true;
+                    // }
                     if ui.button("Open current set in explorer").clicked(){ //todo options is not necessarily set, find a workaround
                         self.options = Options::new_read();
                         Command::new("explorer")
