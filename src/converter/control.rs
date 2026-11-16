@@ -270,15 +270,21 @@ fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&
         }
     }
 }
-/// cleans up 0WADS\<champion>.wad.client.zip and 0WADS\<champion>.wad.client which
+/// cleans up 0WADS\<champion>.wad.client.zip, 0WADS\<champion>.wad.client and <champion>.wad.client
+/// if they exist.
+/// I do not care whether these actually succeed
 fn cleanup(option: &Options, champion:&mut Champion){
     let zip = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion.get_name());
     if fs::exists(&zip).unwrap_or(false){
-        fs::remove_file(&zip);
+        let _ = fs::remove_file(&zip);
     }
     let archive = format!(r"{}\0WADS\{}.wad.client", option.get_project_path(), champion.get_name());
     if fs::exists(&archive).unwrap(){
-        fs::remove_file(&archive);
+        let _ = fs::remove_file(&archive);
     }
-    //delete ahri.wad.client
+    let output =  format!(r"{}\{}.wad.client", option.get_project_path(), champion.get_name());
+    if fs::exists(&output).unwrap(){
+        let _ = fs::remove_dir_all(&output);
+    }
+
 }
