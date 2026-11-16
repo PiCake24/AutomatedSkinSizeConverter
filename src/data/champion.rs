@@ -12,7 +12,7 @@ pub struct Champion {
 impl Champion {
     pub(crate) fn new(options: &Options, name: &str) -> Champion{
         Self{
-            name: name.to_string(),
+            name: name.to_string().to_ascii_lowercase(),
             parent: Self::set_parent(options, name.to_string()),
             skins: Vec::new(),
             aborted: false

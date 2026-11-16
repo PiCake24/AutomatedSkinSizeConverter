@@ -210,11 +210,11 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
         champion.get_name()
     );
 
-    let file = match File::open(path) {
+    let file = match File::open(&path) {
         Ok(f) => f,
         Err(e) => {
-            log(sender, format!("Could not open file: {}, reading 0Options.txt", e));
-            get_default_scale(sender, option, champion, current_set); //todo actually only do this when file doesnt exist
+            log(sender, format!("Could not open file {}: {}, defaulting to Scale in 0Options.txt", &path, e));
+            get_default_scale(sender, option, champion, current_set);
             return
         },
     };
@@ -222,7 +222,7 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
     let mut data = String::new();
 
     if let Err(e) = BufReader::new(file).read_to_string(&mut data) {
-        log(sender, format!("Could not read file: {}", e));
+        log(sender, format!("Could not read file {}: {}", &path, e));
         return;
     }
 
