@@ -7,6 +7,7 @@ use std::ops::Add;
 use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::Sender;
+use crate::data::champion::Champion;
 
 /// uses ritobin to convert multiple bin files at the same time into a json file
 pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
@@ -55,22 +56,27 @@ fn bin_to_json_single(sender:&Sender<WorkerMessage>, options: &Options, bin_path
     Ok(())
 }
 /// uses ritobin to convert a json file to a bin file
-pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{ //todo also only convert files we need
-    let json_path = format!(r"{}\0WADS\data\characters\{}\skins", options.get_project_path(), champion);
+pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &Champion) -> Result<(), Box<dyn std::error::Error>>{ //todo also only convert files we need
+    let input_path = format!(r"{}\0WADS\data\characters\{}\skins", options.get_project_path(), champion.get_name());
 
-    let output_path = format!(r"{}\{}.wad.client\data\characters\{}\skins", options.get_project_path(), champion, champion);
+    let output_path = format!(r"{}\{}.wad.client\data\characters\{}\skins", options.get_project_path(), champion.get_name(), champion.get_name());
     fs::create_dir_all(&output_path).inspect_err(|e| {log(sender, format!("Could not create output directory: {}", e))})?;
 
-    for entry in fs::read_dir(&json_path).inspect_err(|e| {log(sender, format!("Could not read directory: {}", e))})? {
-        let entry = entry.inspect_err(|e| {log(sender, format!("Entry failed: {}", e))})?;
-        let path = entry.path();
-
-
-
-        if path.extension().and_then(|e| e.to_str()) == Some("py") {
-            let filename = path.as_path().file_name().unwrap().to_str().unwrap().to_string();
-            let filename:String = filename[..filename.len() - 2].to_string();
-            py_to_bin(sender, path.to_str().unwrap(), &format!("{}/{}{}", &output_path, filename, "bin"))?;
+    // for entry in fs::read_dir(&input_path).inspect_err(|e| {log(sender, format!("Could not read directory: {}", e))})? {
+    for skin in champion.get_skins(){
+        let input = format!(r"{}\skin{}.py", input_path, skin.get_skin());
+        let output = format!(r"{}\skin{}.bin", output_path, skin.get_skin());
+        py_to_bin(sender, &input, &output)?;
+    // }
+        // let entry = entry.inspect_err(|e| {log(sender, format!("Entry failed: {}", e))})?;
+        // let path = entry.path();
+        //
+        //
+        //
+        // if path.extension().and_then(|e| e.to_str()) == Some("py") {
+        //     let filename = path.as_path().file_name().unwrap().to_str().unwrap().to_string();
+        //     let filename:String = filename[..filename.len() - 2].to_string();
+        //     py_to_bin(sender, path.to_str().unwrap(), &format!("{}/{}{}", &output_path, filename, "bin"))?;
 
             // let file_stem = path.file_stem().ok_or("No file stem").inspect_err(|e| {log(sender, format!("Could not get file stem for {:?}: {}",path, e))})?;
             // let output_file = Path::new(&output_path)
@@ -93,7 +99,7 @@ pub fn json_to_bin(sender:&Sender<WorkerMessage>, options: &Options,champion: &s
             //         std::io::ErrorKind::Other, format!("WAD_MAKE Error: {}: {}", output.status, String::from_utf8_lossy(&output.stderr))
             //     ).into())
             // }
-        }
+        // }
     }
     Ok(())
 }

@@ -67,7 +67,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 continue 'champion;
             }
         }
-        if json_to_bin(sender, options, &name).is_err(){
+        if json_to_bin(sender, options, &champion).is_err(){
             champion.abort();
             continue
         }
@@ -97,7 +97,6 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             }
         }
     }
-    // fs::remove_file(&source).inspect_err(|e| {log(sender, format!("Could not remove zip {:?}: {}", source, e))})?; //todo cleanup folders
     log(sender, "Completed") //todo timestamp
 }
 /// reads from options.txt which champions and which skins to convert
@@ -182,25 +181,6 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
 
     Ok(())
 }
-/// extracts the Champion parent of a Champion
-/// swaindemonform for example should return swain
-/// topaz_swain should also return swain
-// fn get_parent(options: &Options, champion: String) -> String {
-//     //prefix
-//     if champion.contains("_"){
-//         let parent = champion.split("_");
-//         return parent.collect::<Vec<&str>>()[1].to_string()
-//     }
-//     let champion_parent = &champion;
-//     let file_path = &format!(r"{}\DATA\FINAL\Champions\{}.wad.client",
-//                              options.get_league_path(),
-//                              champion_parent);
-//     let result = fs::exists(Path::new(file_path));
-//     if !result.unwrap(){ //todo this can crash if unwrap fails (also test viktor, vi)
-//         return get_parent(options,champion.split_at( champion.len()-1).0.to_string())
-//     }
-//     champion_parent.to_string()
-// }
 /// gets the scale for each skin of a champion
 pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion, current_set: &str)  {
     let path = format!(
@@ -263,7 +243,7 @@ pub fn get_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut 
         }
     }
 }
-///if champfile doesnt exist read mainfile
+///if champion file doesn't exist read mainfile
 fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&mut Champion,current_set: &str){
     let path = Path::new(option.get_project_path())
         .join("0PutSizeOptionFilesHere")
@@ -290,6 +270,7 @@ fn get_default_scale(sender:&Sender<WorkerMessage>, option: &Options, champion:&
         }
     }
 }
+/// cleans up 0WADS\<champion>.wad.client.zip and 0WADS\<champion>.wad.client which
 fn cleanup(option: &Options, champion:&mut Champion){
     let zip = format!(r"{}\0WADS\{}.wad.client.zip", option.get_project_path(), champion.get_name());
     if fs::exists(&zip).unwrap_or(false){
@@ -299,4 +280,5 @@ fn cleanup(option: &Options, champion:&mut Champion){
     if fs::exists(&archive).unwrap(){
         fs::remove_file(&archive);
     }
+    //delete ahri.wad.client
 }

@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
 use crate::converter::skin_rescaler2::rescale_normal2;
+use crate::data::champion::Champion;
 use crate::data::legendary_champion::LuxChampion;
 use crate::data::legendary_champion::SonaChampion;
 use crate::data::options::Options;
@@ -26,9 +27,15 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         rescale_normal2(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
         rescale_normal2(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
         rescale_normal2(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;
-        json_to_bin(sender, options, "sonadjgenre01")?;
-        json_to_bin(sender, options, "sonadjgenre02")?;
-        json_to_bin(sender, options, "sonadjgenre03")?;
+        let mut genre1 = Champion::new(options, "sonadjgenre01");
+        genre1.add_skins(6);
+        json_to_bin(sender, options, &genre1)?;
+        let mut genre2 = Champion::new(options, "sonadjgenre01");
+        genre2.add_skins(6);
+        json_to_bin(sender, options, &genre2)?;
+        let mut genre3 = Champion::new(options, "sonadjgenre01");
+        genre3.add_skins(6);
+        json_to_bin(sender, options, &genre3)?;
         Ok(())
     } else {
         rescale_normal2(sender,options, champion, champion_parent, skin, scale)

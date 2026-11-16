@@ -16,7 +16,7 @@ use std::default::Default;
 // todo replace strings with paths
 // todo block ui when program is working
 // todo improve error logs even more
-const VERSION: &str = "3.0.0";
+const VERSION: &str = "3.0.1";
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions::default();
     eframe::run_native("Automated Skin Size Converter", options, Box::new(
