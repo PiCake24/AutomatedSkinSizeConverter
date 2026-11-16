@@ -65,15 +65,15 @@ Step 7: Now just import the wad folders into cslol, if you have not checked the 
 
 ## Size Options
 
-The program allows the user to set a default size (A size that gets applied to all skins) and also a different size for each skin.
+The program allows the user to set a default size per set and a default size per champion and also a different size for each skin.
 
-If you want to set skins to your own preferred sizes you have to create a file in the 0PutSizeOptionsHere folder named after the champion. E.g.
+For a default size per set you add `Scale: <size>` into the 0Options.txt in the default set.
+
+If you want to set skins to your own preferred sizes you have to create a file in the 0PutSizeOptionsHere/default folder named after the champion. E.g.
 
 `ahri.txt`
 
 Then the first line should contain the champion, followed by a colon, followed by the default size.
-
-(Stop here if you want every skin to have the same size)
 
 If you additionally want to tweak specific skin sizes, in the lines below that you should put: The skin number, then a colon, then the size for that skin.
 
@@ -93,7 +93,7 @@ Ahri: 4
 
 This would set the size of skin 3 to 8, skin 12 to 7 and skin 13 and 14 to 6 and all other skins to size 4.
 
-Note that the default size without a size options file is set to 5. So if you want all skins of a champion to be size 5 you do not need to create such a file.
+Note that the default size without a size options file is set to 2. So if you want all skins of a champion to be size 5 you do not need to create such a file.
 
 ## Further notes
 
