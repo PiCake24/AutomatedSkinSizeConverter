@@ -6,8 +6,6 @@ mod data;
 use crate::converter::main_gui::AutomatedSkinSizeConverter;
 use std::default::Default;
 
-
-
 // todo fn visibility reduction
 // todo check paths in the app, so they are actually what the user sets and not my hardcoded ones
 // todo add output to panics, because they do crash the app. Maybe try avoiding panics

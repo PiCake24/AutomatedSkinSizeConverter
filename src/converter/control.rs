@@ -23,7 +23,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
         if download_hashes(options, sender).is_ok(){
             log(sender, "Hashes downloaded and written successfully");
         } else{
-            if Path::new(&get_ritobin_path(options)).exists(){
+            if Path::new(&get_ritobin_path(options)).exists(){ //todo this is buggy and not correct, it should check whether all hash files exist instead
                 log(sender, "Using old hashes")
             } else{
                 log(sender, "No hashes available, stopping");
@@ -67,7 +67,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
                 continue 'champion;
             }
         }
-        if json_to_bin(sender, options, &champion).is_err(){
+        if json_to_bin(sender, options, &champion, &champion.get_name()).is_err(){
             champion.abort();
             continue
         }
@@ -164,7 +164,7 @@ fn get_all_skins(sender:&Sender<WorkerMessage>, options: &Options, champion: &mu
     let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\", options.get_project_path(), champion.get_name());
 
     let entries = fs::read_dir(&bin_path)
-        .inspect_err(|e| log(sender, format!("Error while reading work directory: {}", e)))?;
+        .inspect_err(|e| log(sender, format!("Error while reading work directory {}: {}", bin_path, e)))?;
 
     let re = Regex::new(r"\d+").inspect_err(|e| log(sender, format!("Could not create number regex: {}", e)))?;
 
