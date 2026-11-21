@@ -4,6 +4,7 @@ use std::fs::{read_to_string, File};
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
 use serde_json::{json, Value};
+use crate::cdtb::cdtb::wad_extract;
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
 use crate::converter::skin_rescaler2::rescale_normal2;
@@ -20,22 +21,26 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         log(sender, "Elementalist lux is not supported yet");
         Ok(()) //todo
     } else if champion == "sona" && skin == 6 {
+        log(sender, "DJ SONA");
         let sona_champ = read_sona(sender, options, current_set)?;
+        let mut genre1 = Champion::new(options, "sonadjgenre01");
+        let mut genre2 = Champion::new(options, "sonadjgenre02");
+        let mut genre3 = Champion::new(options, "sonadjgenre03");
+        genre1.add_skins(6);
+        genre2.add_skins(6);
+        genre3.add_skins(6);
+        wad_extract(options, sender, "sona", &mut genre1)?;
+        wad_extract(options, sender, "sona", &mut genre2)?;
+        wad_extract(options, sender, "sona", &mut genre3)?;
         bin_to_json(sender, options, "sonadjgenre01")?;
         bin_to_json(sender, options, "sonadjgenre02")?;
         bin_to_json(sender, options, "sonadjgenre03")?;
         rescale_normal2(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
         rescale_normal2(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
         rescale_normal2(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;
-        let mut genre1 = Champion::new(options, "sonadjgenre01");
-        genre1.add_skins(6);
-        json_to_bin(sender, options, &genre1)?;
-        let mut genre2 = Champion::new(options, "sonadjgenre01");
-        genre2.add_skins(6);
-        json_to_bin(sender, options, &genre2)?;
-        let mut genre3 = Champion::new(options, "sonadjgenre01");
-        genre3.add_skins(6);
-        json_to_bin(sender, options, &genre3)?;
+        json_to_bin(sender, options, &genre1, "sona")?;
+        json_to_bin(sender, options, &genre2, "sona")?;
+        json_to_bin(sender, options, &genre3, "sona")?;
         Ok(())
     } else {
         rescale_normal2(sender,options, champion, champion_parent, skin, scale)

@@ -94,9 +94,9 @@ impl AutomatedSkinSizeConverter{
         egui::Panel::top("my_panel").show(ui, |ui| {
             ui.add_enabled_ui(!is_busy, |ui| {
                 ui.horizontal(|ui| {
-                    if ui.button("Options").clicked() {
-                        self.state = AppState::Options;
-                    }
+                    // if ui.button("Options").clicked() {
+                    //     self.state = AppState::Options;
+                    // }
                     ui.label("Set:");
                     egui::ComboBox::from_id_salt("SetOption")
                         .selected_text(format!("{}", &self.selected_set))
@@ -110,7 +110,7 @@ impl AutomatedSkinSizeConverter{
                             }
                         });
 
-                    // if ui.button("Create new Set").clicked() {
+                    // if ui.button("Create new Set").clicked() { //todo
                     //     self.show_create_set = true;
                     // }
                     if ui.button("Open current set in explorer").clicked(){ //todo options is not necessarily set, find a workaround
@@ -129,9 +129,9 @@ impl AutomatedSkinSizeConverter{
             });
         });
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.add_enabled_ui(!is_busy, |ui| { //todo?
+            ui.add_enabled_ui(!is_busy, |ui| {
                 ui.horizontal(|ui| {
-                    ui.checkbox(&mut self.download_files, "Download Files");
+                    ui.checkbox(&mut self.download_files, "Extract Files from league");
                     ui.checkbox(&mut self.export_cslol, "Export to cslol");
                     ui.checkbox(&mut self.export_ltk, "Export to ltk");
 
