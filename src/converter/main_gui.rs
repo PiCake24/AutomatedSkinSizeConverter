@@ -237,6 +237,7 @@ impl AutomatedSkinSizeConverter{
         //modify file
     }
     fn check_version(&mut self,ui: &mut Ui){
+        self.download_files = true;
         let (sender, receiver) = mpsc::channel();
         if self.latest_version == ""{
             self.latest_version = version_check(&sender).unwrap();
