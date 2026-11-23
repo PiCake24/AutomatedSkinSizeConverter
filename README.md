@@ -110,7 +110,7 @@ Sona: 5
 2: 4.5
 3: 4.75
 ```
-(Elementalist Lux is sadly currently unsupported again, but I am working on it)
+
 luxlegendary should look like this
 ```
 lux: 5
