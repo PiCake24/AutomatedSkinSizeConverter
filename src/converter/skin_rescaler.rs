@@ -28,9 +28,9 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         wad_extract(options, sender, "sona", &mut genre1)?;
         wad_extract(options, sender, "sona", &mut genre2)?;
         wad_extract(options, sender, "sona", &mut genre3)?;
-        bin_to_json(sender, options, "sonadjgenre01")?;
-        bin_to_json(sender, options, "sonadjgenre02")?;
-        bin_to_json(sender, options, "sonadjgenre03")?;
+        bin_to_json(sender, options, &mut genre1)?;
+        bin_to_json(sender, options, &mut genre2)?;
+        bin_to_json(sender, options, &mut genre3)?;
         rescale_normal2(sender, options, "sonadjgenre01", "", 6, sona_champ.get_genre1())?;
         rescale_normal2(sender, options, "sonadjgenre02", "", 6, sona_champ.get_genre2())?;
         rescale_normal2(sender, options, "sonadjgenre03", "", 6, sona_champ.get_genre3())?;

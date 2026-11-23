@@ -8,21 +8,21 @@ use std::sync::mpsc::Sender;
 use crate::converter::main_gui::{log, WorkerMessage};
 use crate::data::options::Options;
 
-pub fn bin_to_py(sender:&Sender<WorkerMessage>, options: &Options, bin_path: &str, filename: &str) -> Result<(), Box<dyn Error>> {
+pub fn bin_to_py(sender:&Sender<WorkerMessage>, options: &Options, bin_path: &str, py_path: &str) -> Result<(), Box<dyn Error>> {
 
-    let old_name = format!(r"{}{}", bin_path, filename);
-    let new_name = format!(r"{}\{}{}", bin_path, &filename[..filename.len() - 3], "py");
-    log(sender, format!("Converting {} to {}", old_name, new_name));
-    let mut reader = BufReader::new(File::open(&old_name)?);
+    // let old_name = format!(r"{}{}", bin_path, filename);
+    // let new_name = format!(r"{}\{}{}", bin_path, &filename[..filename.len() - 3], "py");
+    log(sender, format!("Converting {} to {}", bin_path, py_path));
+    let mut reader = BufReader::new(File::open(&bin_path)?);
     let bin = Bin::from_reader(&mut reader)?;
 
     let mut hashes = HashMapProvider::new();
     hashes.load_from_directory(format!(r"{}\0WADS\hashes\ritobin", options.get_project_path())); // loads hashes.bin{entries,fields,hashes,types}.txt
 
     let text = bin.print_with_config(PrintConfig::default().with_hashes(hashes))?;
-    fs::write(new_name, text)?;
+    fs::write(py_path, text)?;
 
-    log(sender, format!("Converted {}", old_name));
+    log(sender, format!("Converted {}", bin_path));
     Ok(())
 }
 // Parse ritobin text

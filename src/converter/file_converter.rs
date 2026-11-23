@@ -3,35 +3,40 @@ use crate::converter::main_gui::{WorkerMessage, log};
 use crate::data::options::{Options, get_ritobin_path};
 use rayon::prelude::*;
 use std::fs;
-use std::ops::Add;
-use std::path::Path;
 use std::process::Command;
 use std::sync::mpsc::Sender;
 use crate::data::champion::Champion;
 
 /// uses ritobin to convert multiple bin files at the same time into a json file
-pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion);
-    let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect();
-    //todo ideally only convert the files we need
-    files.into_par_iter().for_each(|entry| { //todo ganz so einfach ist dass dann doch nicht
-        let entry_result = entry;
-        if entry_result.is_ok() {
-            let entry = entry_result.unwrap();
-            let filepath_result = entry.file_name().into_string();
-            if filepath_result.is_ok() {
-                let filepath = filepath_result.unwrap();
-                if filepath.ends_with(".bin") && filepath != "root.bin" {
-                    bin_to_py(sender, options, &bin_path, &filepath);
+pub fn bin_to_json(sender:&Sender<WorkerMessage>,options: &Options,champion: &mut Champion) -> Result<(), Box<dyn std::error::Error>>{
+    let bin_path = format!(r"{}\0WADS\data\characters\{}\skins\",options.get_project_path() , champion.get_name());
+    // let files: Vec<_> = fs::read_dir(&bin_path).inspect_err(|e| {log(sender, format!("Error while reading work directory: {}", e))})?.collect();
+    
+    for skin in champion.get_skins(){
+        let input = format!(r"{}\skin{}.bin", bin_path, skin.get_skin());
+        let output = format!(r"{}\skin{}.py", bin_path, skin.get_skin());
+        bin_to_py(sender, options, &input, &output)?;
+    }
 
-                }
-            } else {
-                log(sender, format!("Filepath error: {:?}", filepath_result))
-            }
-        } else {
-            log(sender, format!("Entry error: {:?}", entry_result))
-        }
-});
+
+//     files.into_par_iter().for_each(|entry| {
+//         let entry_result = entry;
+//         if entry_result.is_ok() {
+//             let entry = entry_result.unwrap();
+//             let filepath_result = entry.file_name().into_string();
+//             if filepath_result.is_ok() {
+//                 let filepath = filepath_result.unwrap();
+//                 if filepath.ends_with(".bin") && filepath != "root.bin" {
+//                     bin_to_py(sender, options, &bin_path, &filepath);
+//
+//                 }
+//             } else {
+//                 log(sender, format!("Filepath error: {:?}", filepath_result))
+//             }
+//         } else {
+//             log(sender, format!("Entry error: {:?}", entry_result))
+//         }
+// });
     Ok(())
 }
 /// uses ritobin to convert a bin file to a json file

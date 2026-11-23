@@ -55,7 +55,7 @@ pub fn control(sender:&Sender<WorkerMessage>, download_files:bool, export_cslol_
             }
         }
         get_scale(sender,options, &mut champion, current_set);
-        if bin_to_json(sender, options, &name).is_err(){
+        if bin_to_json(sender, options, champion).is_err(){
             champion.abort();
             continue
         }
