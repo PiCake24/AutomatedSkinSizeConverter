@@ -55,7 +55,7 @@ Step 2: Save the 0Options.txt file
 
 Step 3: Add the size Options files into the 0PutSizeOptionFilesHere/default folder (see below how to create them).
 
-(Optional) Step 4: In the program check the "Download Files" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
+(Optional) Step 4: In the program check the "Extract Files from league" checkbox for the program to automatically get the files from league. If it is unchecked you have to move the unpacked files to the 0WADS folder with Obsidian yourself.
 
 (Optional) Step 5: In the program check the "Export to cslol"/"Export to ltk" checkboxes for the program to add the mods as "giant <championname>" into cslol/ltk manager. If you want to use this option I recommend to close cslol/ltk manager while my program is running.
 
