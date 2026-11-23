@@ -23,7 +23,7 @@ pub fn rescale_normal2(sender:&Sender<WorkerMessage>, options: &Options, champio
     log(sender, format!("Completed writing into {}", filepath));
     Ok(())
 }
-fn brace_delta(line: &str) -> i32 {
+pub fn brace_delta(line: &str) -> i32 {
     let mut delta = 0;
     let mut in_str = false;
     for c in line.chars() {

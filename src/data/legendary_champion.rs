@@ -33,66 +33,49 @@ impl LuxChampion {
         }
     }
 
-    /// All fields start at 2.0 (original behavior).
-    pub fn new_default() -> Self {
-        LuxChampion {
-            base: Some(2.0),
-            fire: Some(2.0),
-            water: Some(2.0),
-            air: Some(2.0),
-            nature: Some(2.0),
-            magma: Some(2.0),
-            dark: Some(2.0),
-            mystic: Some(2.0),
-            ice: Some(2.0),
-            storm: Some(2.0),
-            light: Some(2.0),
-        }
-    }
-
-    // Getters (default to 0.0 if unset)
+    // Getters (default to 2.0 if unset)
     pub fn get_base(&self) -> f32 {
-        self.base.unwrap_or(0.0)
+        self.base.unwrap_or(2.0)
     }
 
     pub fn get_fire(&self) -> f32 {
-        self.fire.unwrap_or(0.0)
+        self.fire.unwrap_or(self.get_base())
     }
 
     pub fn get_water(&self) -> f32 {
-        self.water.unwrap_or(0.0)
+        self.water.unwrap_or(self.get_base())
     }
 
     pub fn get_air(&self) -> f32 {
-        self.air.unwrap_or(0.0)
+        self.air.unwrap_or(self.get_base())
     }
 
     pub fn get_nature(&self) -> f32 {
-        self.nature.unwrap_or(0.0)
+        self.nature.unwrap_or(self.get_base())
     }
 
     pub fn get_magma(&self) -> f32 {
-        self.magma.unwrap_or(0.0)
+        self.magma.unwrap_or(self.get_base())
     }
 
     pub fn get_dark(&self) -> f32 {
-        self.dark.unwrap_or(0.0)
+        self.dark.unwrap_or(self.get_base())
     }
 
     pub fn get_mystic(&self) -> f32 {
-        self.mystic.unwrap_or(0.0)
+        self.mystic.unwrap_or(self.get_base())
     }
 
     pub fn get_ice(&self) -> f32 {
-        self.ice.unwrap_or(0.0)
+        self.ice.unwrap_or(self.get_base())
     }
 
     pub fn get_storm(&self) -> f32 {
-        self.storm.unwrap_or(0.0)
+        self.storm.unwrap_or(self.get_base())
     }
 
     pub fn get_light(&self) -> f32 {
-        self.light.unwrap_or(0.0)
+        self.light.unwrap_or(self.get_base())
     }
 
     // Setters — log and skip if already set
@@ -222,6 +205,31 @@ impl LuxChampion {
             self.light = Some(value);
         }
     }
+    pub fn get_scale_from_element(&self, element: &str) -> f32 {
+        if element == "Light"{
+            self.get_light()
+        } else if element == "Magma" {
+            self.get_magma()
+        } else if element == "Dark" {
+            self.get_dark()
+        }  else if element == "Nature" {
+            self.get_nature()
+        } else if element == "Fire" {
+            self.get_fire()
+        } else if element == "Mystic" {
+            self.get_mystic()
+        } else if element == "Storm" {
+            self.get_storm()
+        } else if element == "Water" {
+            self.get_water()
+        } else if element == "Ice" {
+            self.get_ice()
+        } else if element == "Air" {
+            self.get_air()
+        } else{
+           2.0
+        }
+    }
 }
 
 /// Size settings for DJ Sona's base model and three genres.
@@ -253,7 +261,7 @@ impl SonaChampion {
         self.genre3 = Some(value);
     }
 
-    pub fn get_base(&self) -> f32 { self.base.unwrap_or(0.0) }
+    pub fn get_base(&self) -> f32 { self.base.unwrap_or(2.0) }
     pub fn get_genre1(&self) -> f32 { self.genre1.unwrap_or(self.get_base()) }
     pub fn get_genre2(&self) -> f32 { self.genre2.unwrap_or(self.get_base()) }
     pub fn get_genre3(&self) -> f32 { self.genre3.unwrap_or(self.get_base()) }

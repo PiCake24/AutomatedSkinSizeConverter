@@ -1,13 +1,11 @@
-use std::collections::VecDeque;
 use std::fs;
 use std::fs::{read_to_string, File};
 use std::io::{BufReader, Read};
 use std::sync::mpsc::Sender;
-use serde_json::{json, Value};
 use crate::cdtb::cdtb::wad_extract;
 use crate::converter::file_converter::{bin_to_json, json_to_bin};
 use crate::converter::main_gui::{log, WorkerMessage};
-use crate::converter::skin_rescaler2::rescale_normal2;
+use crate::converter::skin_rescaler2::{brace_delta, rescale_normal2};
 use crate::data::champion::Champion;
 use crate::data::legendary_champion::LuxChampion;
 use crate::data::legendary_champion::SonaChampion;
@@ -17,11 +15,9 @@ use crate::data::options::Options;
 /// reads a
 pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
     if champion == "lux" && skin == 7 {
-        // rescale_lux(sender, options, current_set)?;
-        log(sender, "Elementalist lux is not supported yet");
-        Ok(()) //todo
+        rescale_lux(sender, options, current_set)?;
+        Ok(())
     } else if champion == "sona" && skin == 6 {
-        log(sender, "DJ SONA");
         let sona_champ = read_sona(sender, options, current_set)?;
         let mut genre1 = Champion::new(options, "sonadjgenre01");
         let mut genre2 = Champion::new(options, "sonadjgenre02");
@@ -46,128 +42,105 @@ pub fn rescale_skins(sender:&Sender<WorkerMessage>,options: &Options, champion:&
         rescale_normal2(sender,options, champion, champion_parent, skin, scale)
     }
 }
-/// scales a normal champion
-fn rescale_normal(sender:&Sender<WorkerMessage>,options: &Options, champion:&str, champion_parent:&str, skin: u16, scale: f32) -> Result<(), Box<dyn std::error::Error>>{
-    let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.json", options.get_project_path(), champion, skin);
 
-    let mut data = String::new();
-    let f = File::open(&filepath).inspect_err(|e| { log(sender, format!("Could not open file: {}, {}", &filepath, e)) })?;
-    let mut br = BufReader::new(&f);
-    br.read_to_string(&mut data).inspect_err(|e| { log(sender, format!("Could not read data: {}", e)) })?;
-    let mut parsed: Value = serde_json::from_str(&data).inspect_err(|e| { log(sender, format!("Could convert data to json: {}", e)) })?;
-
-    //change and write data
-    let entries = parsed.get_mut("entries").ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "Missing entries item"))?;
-    traverse(sender, entries, vec![&format!("characters/{}/skins/skin{}",champion, skin), "skinmeshproperties","skinscale"].into(), scale, champion, skin)?;
-    fs::write(&filepath, serde_json::to_string_pretty(&parsed).inspect_err(|e| { log(sender, format!("Could create string: {}", e)) })?).inspect_err(|e| { log(sender, format!("Could not write to file: {}", e)) })?;
-    Ok(())
-}
-
-/// Traverses the json and changes a number according scale, if the last path part does not exist it creates it
-///
-/// # Arguments
-/// * value: the json that should be traversed
-/// * path: the path that should get traversed
-/// + scale: the size increase of that Champion
-fn traverse(sender:&Sender<WorkerMessage>, value: & mut Value, mut path:VecDeque<&str>, scale:f32,  champion:&str, skin: u16) -> Result<(), Box<dyn std::error::Error>>{
-    let json_array = value["value"]["items"].as_array_mut().ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidData, "Missing items array"))?;
-    let key = path.pop_front();
-    if key.is_none(){
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidData, "No key"
-        ).into());
-    }
-    for element in json_array.iter_mut(){
-        if element["key"].as_str().is_some() {
-            if element["key"].as_str().unwrap().to_lowercase() == key.unwrap().to_lowercase() {
-                if path.is_empty() {
-                    element["value"] = json!(scale);
-                    return Ok(());
-                }
-                return traverse(sender, element, path, scale, champion, skin);
-            }
-        } else if element["key"].as_i64().is_some(){
-            if element["key"].as_i64().unwrap().to_string() == key.unwrap() {
-                if path.is_empty() {
-                    element["value"] = json!(scale);
-                    return Ok(());
-                }
-                return traverse(sender, element, path, scale, champion, skin);
-            }
-        }
-    }
-    if path.is_empty(){
-        log(sender, "scale doesnt exist in json, adding");
-        let new_entry = json!({
-            "key": "skinScale",
-            "type": "f32",
-            "value": scale
-        });
-        json_array.push(new_entry);
-        Ok(())
-    } else{
-        Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidData, format!("JSON not complete: {}, {}", champion, skin)
-        ).into())
-    }
-}
 /// reads the file for elementalist lux and then rescales her
 fn rescale_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(), Box<dyn std::error::Error>>{
-    let a = read_lux(sender, options, current_set)?;
-    write_lux();
+    let lux = read_lux(sender, options, current_set)?;
+    write_lux(sender, options, lux)?;
     Ok(())
 }
 ///reads the file for elementalist lux
-fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<(LuxChampion), Box<dyn std::error::Error>>{
+fn read_lux(sender:&Sender<WorkerMessage>, options: &Options, current_set: &str) -> Result<LuxChampion, Box<dyn std::error::Error>>{
     let file = format!(r"{}\0PutSizeOptionFilesHere\{}\luxlegendary.txt", options.get_project_path(), current_set);
-    let text = read_to_string(file).inspect_err(|e| { log(sender, format!("Could not read options file to file, trying lux options: {}", e)) });
-    let mut default: Option<f32> = None;
-    let mut champ = LuxChampion::new();
-    if let Ok(text) = text {
-        for line in text.lines() {
-            if line.starts_with("lux:"){
-                default = Some(line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
-            } else if line.starts_with("magma:") {
-                champ.set_magma(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
-            } else if line.starts_with("dark:") {
-                champ.set_dark(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
-            } else if line.starts_with("mystic:") {
-                champ.set_mystic(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
-            } else if line.starts_with("ice:"){
-                champ.set_ice(sender, line.split_once(":").unwrap().1.trim().parse().unwrap()); //todo unwrap etc
-            } else if line.starts_with("storm:"){
-                champ.set_storm(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
-            } else if line.starts_with("light:"){
-                champ.set_light(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
-            } else if line.starts_with("water:"){
-                champ.set_water(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
-            } else if line.starts_with("fire:"){
-                champ.set_fire(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
-            } else if line.starts_with("air:"){
-                champ.set_air(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
-            } else if line.starts_with("nature:"){
-                champ.set_nature(sender, line.split_once(":").unwrap().1.trim().parse().unwrap());//todo unwrap etc
+    let mut lux = LuxChampion::new();
+    let mut has_base = false;
+
+    match read_to_string(&file){
+        Ok(text) => {
+            for line in text.lines() {
+                let Some((key, value)) = line.split_once(':') else {
+                    continue;
+                };
+                let value: f32 = value.trim().parse().map_err(|e| {
+                    log(sender, format!("Invalid Lux size: {}", e));
+                    e
+                })?;
+                match key.trim().to_ascii_lowercase().as_str() {
+                    "lux" => {
+                        has_base = true;
+                        lux.set_base(sender, value);
+                    },
+                    "magma" => lux.set_magma(sender, value),
+                    "dark" => lux.set_dark(sender, value),
+                    "mystic" => lux.set_mystic(sender, value),
+                    "ice" => lux.set_ice(sender, value),
+                    "storm" => lux.set_storm(sender, value),
+                    "light" => lux.set_light(sender, value),
+                    "water" => lux.set_water(sender, value),
+                    "fire" => lux.set_fire(sender, value),
+                    "air" => lux.set_air(sender, value),
+                    "nature" => lux.set_nature(sender, value),
+                    _ => log(sender, "Ignoring invalid option")
+                }
             }
         }
-        if default.is_some(){
-            champ.set_rest(default.unwrap());
-        } else{
-            // todo read default from lux, then from set
+        Err(e) => {
+            log(sender, format!("Could not read LuxLegendary.txt: {}", e));
         }
-    } else{
-        let file = format!(r"{}\0PutSizeOptionFilesHere\{}\lux.txt", options.get_project_path(), current_set);
-        let text = read_to_string(file).inspect_err(|e| { log(sender, format!("Could not read options file to file, trying set default options: {}", e)) });
-        if let Ok(text) = text {
-            //todo read default from lux file
-        } else{
-           //todo read default from set,
-            // if that fails do idk? I guess abort?
-        }
-
     }
 
+    // if file did not contain a base, read lux.txt instead in order skin 7 -> base
+    if !has_base{
+        let file = format!(r"{}\0PutSizeOptionFilesHere\{}\lux.txt", options.get_project_path(), current_set);
+        match read_to_string(&file) {
+            Ok(text) => {
+                let mut skin7 = None;
+                let mut default = None;
+                for line in text.lines() {
+                    let Some((key, value)) = line.split_once(':') else { continue; };
+                    let value: f32 = value.trim().parse().map_err(|e| { //todo actually bug, we want to continue instead of abort, either maybe the other value is still valid or the default scale is valid
+                        log(sender, format!("Invalid Lux option in {}: {}", file, e));
+                        e
+                    })?;
+                    match key.trim().to_ascii_lowercase().as_str() {
+                        "7" => skin7 = Some(value),
+                        "sona" => default = Some(value),
+                        _ => {}
+                    }
+                }
+                if let Some(value) = skin7.or(default) {
+                    lux.set_base(sender, value);
+                    has_base = true;
+                }
+            }
+            Err(e) => {
+                log(sender, format!("Could not read lux.txt: {}", e));
+            }
+        }
+    }
 
-    Ok(champ)
+    // if still no base set read default option in 0Options.txt
+    if !has_base{
+        let file = format!(r"{}\0PutSizeOptionFilesHere\{}\0Options.txt", options.get_project_path(), current_set);
+        let text = read_to_string(&file).inspect_err(|e| {
+            log(sender, format!("Could not read default options {}: {}", file, e));
+        })?;
+        let mut default = None;
+        for (line_number, line) in text.lines().enumerate() {
+            if let Some((key, value)) = line.split_once(':') {
+                if key.trim().eq_ignore_ascii_case("Scale") {
+                    default = Some(value.trim().parse::<f32>().map_err(|e| {
+                        log(sender, format!("Invalid Scale value in {} on line {}: {}", file, line_number + 1, e));
+                        e
+                    })?);
+                    break;
+                }
+            }
+        }
+        let value = default.ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, format!("No Scale: default found in {}", file)))?;
+        lux.set_base(sender, value);
+    }
+    Ok(lux)
 }
 
 /// Reads the size options for DJ Sona from the selected set's `sonalegendary.txt`.
@@ -255,6 +228,76 @@ fn read_sona(sender: &Sender<WorkerMessage>, options: &Options, current_set: &st
     champ.fill_missing_from_base();
     Ok(champ)
 }
-fn write_lux(){
+/// writes elementalist Lux
+fn write_lux(sender: &Sender<WorkerMessage>, options: &Options, lux: LuxChampion) -> Result<(), Box<dyn std::error::Error>>{
+    let filepath = format!(r"{}\0WADS\data\characters\{}\skins\skin{}.py", options.get_project_path(), "lux", 7);
 
+    // log(sender, format!("Writing into {} with size {}", &filepath, scale));
+
+
+    let mut data = String::new();
+    let f = File::open(&filepath).inspect_err(|e| {log(sender, format!("Could not open file {}: {}", &filepath, e))})?;
+    let mut br = BufReader::new(&f);
+    br.read_to_string(&mut data).inspect_err(|e| {log(sender, format!("Could not read file {}: {}", &filepath, e))})?;
+
+    let patched = write_elements(&data, lux);
+
+    fs::write(&filepath, &patched).inspect_err(|e| {log(sender, format!("Could not write to file {}: {}", &filepath, e))})?;
+
+    log(sender, format!("Completed writing into {}", filepath));
+    Ok(())
+}
+/// Writes each element of Elementalist Lux
+fn write_elements(content: &str, lux: LuxChampion) -> String {
+    let mut out: Vec<String> = Vec::new();
+    let mut inside_element = false;
+    let mut inside_properties = false;
+    let mut scale = 2.0;
+    let mut bracket_count = 0;
+    let mut skin_scale_set = false;
+    let nl = if content.contains("\r\n") { "\r\n" } else { "\n" };
+
+    for line in content.lines() {
+        if  line.contains("0x27dd6361"){ //line.contains("Characters/Lux/Skins/Skin7") &&
+            let element = line.split_once("/Gear/Lux").unwrap_or(("", "Light\"")).1.split_once("\"").unwrap().0;
+            scale = lux.get_scale_from_element(element);
+            inside_element = true;
+            bracket_count = 1;
+
+        }
+        if inside_properties {
+            bracket_count += brace_delta(line);
+            if line.contains("skinScale: f32 ="){
+                skin_scale_set = true;
+                out.push(format!("skinScale: f32 = {}", scale));
+            } else{
+                out.push(line.to_string());
+            }
+            continue;
+        }
+        if inside_element {
+            bracket_count += brace_delta(line);
+            if line.contains("skinMeshProperties: embed ="){
+                inside_properties = true
+            }
+        }
+        if inside_properties && bracket_count == 0{
+            if !skin_scale_set {
+                out.push(format!("skinScale: f32 = {} \n }}", scale));
+            } else {
+                out.push(line.to_string());
+            }
+            inside_properties = false;
+            inside_element = false;
+            skin_scale_set = false;
+            continue;
+        }
+        out.push(line.to_string());
+    }
+
+    let mut result = out.join(nl);
+    if content.ends_with('\n') {
+        result.push_str(nl);
+    }
+    result
 }
